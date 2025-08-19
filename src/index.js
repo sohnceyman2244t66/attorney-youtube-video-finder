@@ -63,7 +63,7 @@ app.post("/api/analyze", async (req, res) => {
   console.log("Request body:", req.body);
 
   try {
-    const { keywords, category, maxResults = 50 } = req.body;
+    const { keywords, category, maxResults = 50, channelWhitelist = [] } = req.body;
 
     if (!keywords && !category) {
       console.log("Missing keywords and category, returning 400");
@@ -102,8 +102,16 @@ app.post("/api/analyze", async (req, res) => {
       progress: 10,
     });
 
+    // Apply channel whitelist filtering before any analysis
+    const normalizedWhitelist = new Set(
+      (channelWhitelist || []).map((c) => String(c).toLowerCase())
+    );
+    const videosAfterWhitelist = videos.filter((v) =>
+      !normalizedWhitelist.has(String(v.author || "").toLowerCase())
+    );
+
     // Pre-filter videos to reduce AI load
-    const filteredVideos = preFilterService.filterVideos(videos);
+    const filteredVideos = preFilterService.filterVideos(videosAfterWhitelist);
 
     // Only analyze high and medium priority videos
     const videosToAnalyze = [
@@ -112,7 +120,7 @@ app.post("/api/analyze", async (req, res) => {
     ];
 
     console.log(
-      `Pre-filtered ${videos.length} videos to ${videosToAnalyze.length} for AI analysis`
+      `Pre-filtered ${videosAfterWhitelist.length} videos to ${videosToAnalyze.length} for AI analysis`
     );
 
     // Send filtering progress
@@ -169,7 +177,7 @@ app.post("/api/analyze-game", async (req, res) => {
   console.log("Request body:", req.body);
 
   try {
-    const { gameName } = req.body;
+    const { gameName, channelWhitelist = [] } = req.body;
 
     if (!gameName) {
       return res.status(400).json({
@@ -232,8 +240,17 @@ app.post("/api/analyze-game", async (req, res) => {
     const searchResults = await Promise.all(searchPromises);
 
     // Process results and deduplicate
+    // Normalize whitelist for channel name comparison
+    const normalizedWhitelist = new Set(
+      (channelWhitelist || []).map((c) => String(c).toLowerCase())
+    );
+
     searchResults.forEach(({ keyword, results }) => {
       results.forEach((video) => {
+        // Skip whitelisted channels
+        if (normalizedWhitelist.has(String(video.author || "").toLowerCase())) {
+          return;
+        }
         if (!videoIds.has(video.id)) {
           videoIds.add(video.id);
           allVideos.push({ ...video, searchKeyword: keyword });

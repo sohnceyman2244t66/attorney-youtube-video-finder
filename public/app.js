@@ -2,6 +2,7 @@
 const keywordsInput = document.getElementById("keywords");
 const categorySelect = document.getElementById("category");
 const gameNameInput = document.getElementById("gameName");
+const channelWhitelistInput = document.getElementById("channelWhitelist");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const loadingIndicator = document.getElementById("loadingIndicator");
 const summaryReport = document.getElementById("summaryReport");
@@ -125,6 +126,7 @@ async function performAnalysis() {
 async function performGeneralAnalysis() {
   const keywords = keywordsInput.value.trim();
   const category = categorySelect.value;
+  const whitelist = parseWhitelist(channelWhitelistInput.value);
 
   if (!keywords && !category) {
     showError("Please enter keywords or select a category");
@@ -154,6 +156,7 @@ async function performGeneralAnalysis() {
         keywords,
         category,
         maxResults: 50,
+        channelWhitelist: whitelist,
       }),
     });
 
@@ -186,6 +189,7 @@ async function performGeneralAnalysis() {
 // Perform game cheat analysis
 async function performGameAnalysis() {
   const gameName = gameNameInput.value.trim();
+  const whitelist = parseWhitelist(channelWhitelistInput.value);
 
   if (!gameName) {
     showError("Please enter a game name");
@@ -213,6 +217,7 @@ async function performGameAnalysis() {
       },
       body: JSON.stringify({
         gameName,
+        channelWhitelist: whitelist,
       }),
     });
 
@@ -242,6 +247,17 @@ async function performGameAnalysis() {
       document.getElementById("progressSection").classList.add("hidden");
     }, 2000);
   }
+}
+
+// Parse whitelist field into normalized list of channel names
+function parseWhitelist(text) {
+  if (!text) return [];
+  return text
+    .split(/\r?\n|,/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => s.replace(/^Channel:\s*/i, ""))
+    .map((s) => s.replace(/^"|"$/g, ""));
 }
 
 // Display analysis results
