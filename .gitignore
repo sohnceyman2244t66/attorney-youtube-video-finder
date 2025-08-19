@@ -6,3 +6,4 @@ npm-debug.log*
 *.log
 bin/yt-dlp.exe
 quick-test.bat
+gh-installer.msi
