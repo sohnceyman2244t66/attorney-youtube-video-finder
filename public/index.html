@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Attorney YouTube Video Finder - Copyright Infringement Detection
+    </title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+      <!-- Header -->
+      <header class="mb-10">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">
+          Attorney YouTube Video Finder
+        </h1>
+        <p class="text-lg text-gray-600">
+          AI-Powered Copyright Infringement Detection Tool
+        </p>
+      </header>
+
+      <!-- Search Section -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Search Videos</h2>
+
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-200 mb-4">
+          <nav class="flex space-x-8">
+            <button
+              id="generalTab"
+              class="tab-button active py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              General Search
+            </button>
+            <button
+              id="gameTab"
+              class="tab-button py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              Game Cheats Search
+            </button>
+          </nav>
+        </div>
+
+        <!-- General Search Tab -->
+        <div id="generalSearch" class="tab-content">
+          <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Keywords (Optional)
+              </label>
+              <input
+                type="text"
+                id="keywords"
+                placeholder="e.g., full movie, copyrighted content"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Category
+              </label>
+              <select
+                id="category"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Category</option>
+                <option value="default">All Categories</option>
+                <option value="music">Music</option>
+                <option value="gaming">Gaming</option>
+                <option value="movies">Movies</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Search Tab -->
+        <div id="gameSearch" class="tab-content hidden">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Game Name
+            </label>
+            <input
+              type="text"
+              id="gameName"
+              placeholder="e.g., fortnite, valorant, warzone"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p class="text-sm text-gray-500 mt-1">
+              This will search for cheat-related videos using AI-powered keyword
+              research
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <button
+            id="analyzeBtn"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
+          >
+            Analyze Videos
+          </button>
+
+          <div id="loadingIndicator" class="hidden flex items-center gap-2">
+            <div
+              class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"
+            ></div>
+            <span class="text-gray-600">Analyzing videos...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div
+        id="progressSection"
+        class="hidden bg-white rounded-lg shadow-md p-6 mb-8"
+      >
+        <h3 class="text-lg font-semibold mb-4">Analysis Progress</h3>
+        <div class="mb-4">
+          <div class="flex justify-between text-sm text-gray-600 mb-1">
+            <span id="progressText">Initializing...</span>
+            <span id="progressPercentage">0%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-3">
+            <div
+              id="progressBar"
+              class="bg-blue-600 h-3 rounded-full transition-all duration-300"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+        <div id="progressDetails" class="text-sm text-gray-500">
+          <p id="currentStep">Preparing analysis...</p>
+          <p id="videoCount" class="hidden">
+            Videos analyzed: <span id="analyzedCount">0</span> /
+            <span id="totalCount">0</span>
+          </p>
+          <p id="currentVideo" class="hidden mt-1 text-xs truncate">
+            Analyzing: <span id="videoTitle"></span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Summary Report -->
+      <div
+        id="summaryReport"
+        class="hidden bg-white rounded-lg shadow-md p-6 mb-8"
+      >
+        <h2 class="text-2xl font-semibold mb-4">Analysis Summary</h2>
+        <div class="grid md:grid-cols-4 gap-4">
+          <div class="bg-gray-50 p-4 rounded">
+            <p class="text-sm text-gray-600">Total Analyzed</p>
+            <p id="totalAnalyzed" class="text-2xl font-bold text-gray-900">0</p>
+          </div>
+          <div class="bg-red-50 p-4 rounded">
+            <p class="text-sm text-gray-600">Likely Infringing</p>
+            <p id="likelyInfringing" class="text-2xl font-bold text-red-600">
+              0
+            </p>
+          </div>
+          <div class="bg-orange-50 p-4 rounded">
+            <p class="text-sm text-gray-600">High Confidence</p>
+            <p id="highConfidence" class="text-2xl font-bold text-orange-600">
+              0
+            </p>
+          </div>
+          <div class="bg-blue-50 p-4 rounded">
+            <p class="text-sm text-gray-600">Infringement Rate</p>
+            <p id="infringementRate" class="text-2xl font-bold text-blue-600">
+              0%
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div id="resultsSection" class="hidden">
+        <h2 class="text-2xl font-semibold mb-4">Detected Infringing Videos</h2>
+        <div id="resultsContainer" class="space-y-4">
+          <!-- Results will be inserted here -->
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        id="errorMessage"
+        class="hidden bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4"
+      >
+        <p class="font-medium">Error</p>
+        <p id="errorText" class="text-sm"></p>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

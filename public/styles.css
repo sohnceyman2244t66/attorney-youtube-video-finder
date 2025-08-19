@@ -1,0 +1,107 @@
+/* Custom styles for Attorney YouTube Video Finder */
+
+/* Tab styles */
+.tab-button {
+  color: #6b7280;
+  border-color: transparent;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.tab-button.active {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Card hover effects */
+.hover\:shadow-md {
+  transition: box-shadow 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Button focus states */
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Input focus states */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Smooth transitions */
+.transition-shadow {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Results container max height with scroll */
+#resultsContainer {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  #resultsContainer {
+    max-height: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .shadow-md {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb;
+  }
+}

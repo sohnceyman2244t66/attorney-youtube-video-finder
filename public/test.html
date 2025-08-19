@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test Page - Attorney Video Finder</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8">API Test Page</h1>
+
+      <!-- Quick Test Buttons -->
+      <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Quick Tests</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button
+            onclick="testHealth()"
+            class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Health Check
+          </button>
+          <button
+            onclick="quickSearch()"
+            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Quick Search (2 videos)
+          </button>
+          <button
+            onclick="testGameSearch('fortnite')"
+            class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+          >
+            Game: Fortnite
+          </button>
+          <button
+            onclick="testGameSearch('valorant')"
+            class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+          >
+            Game: Valorant
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom Test -->
+      <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Custom Test</h2>
+        <div class="flex gap-4">
+          <input
+            type="text"
+            id="customKeyword"
+            placeholder="Enter keywords..."
+            class="flex-1 px-4 py-2 border rounded"
+          />
+          <input
+            type="number"
+            id="maxResults"
+            placeholder="Max results"
+            value="5"
+            min="1"
+            max="50"
+            class="w-32 px-4 py-2 border rounded"
+          />
+          <button
+            onclick="customSearch()"
+            class="bg-indigo-500 text-white px-6 py-2 rounded hover:bg-indigo-600"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4">Results</h2>
+        <div id="results" class="font-mono text-sm overflow-auto max-h-96">
+          <p class="text-gray-500">Run a test to see results...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:3000/api";
+      const resultsDiv = document.getElementById("results");
+
+      function showResult(data, title = "") {
+        resultsDiv.innerHTML = `
+                <div class="mb-2 text-green-600">${title}</div>
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">${JSON.stringify(
+                  data,
+                  null,
+                  2
+                )}</pre>
+            `;
+      }
+
+      function showError(error) {
+        resultsDiv.innerHTML = `
+                <div class="text-red-600 font-bold">Error:</div>
+                <pre class="bg-red-50 text-red-800 p-4 rounded mt-2">${error}</pre>
+            `;
+      }
+
+      async function testHealth() {
+        try {
+          const response = await fetch(`${API_URL}/health`);
+          const data = await response.json();
+          showResult(data, "✅ Health Check Passed");
+        } catch (error) {
+          showError(error.message);
+        }
+      }
+
+      async function quickSearch() {
+        try {
+          resultsDiv.innerHTML =
+            '<div class="text-blue-600">🔄 Searching...</div>';
+          const response = await fetch(`${API_URL}/analyze`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              keywords: "fortnite cheat aimbot",
+              maxResults: 2,
+            }),
+          });
+          const data = await response.json();
+
+          // Format results nicely
+          const summary = {
+            totalVideos: data.videos,
+            analyzed: data.analyses.length,
+            infringements: data.analyses.filter((a) => a.isLikelyInfringing)
+              .length,
+            topResults: data.analyses.map((a) => ({
+              title: a.videoTitle,
+              infringing: a.isLikelyInfringing,
+              confidence: a.confidenceScore + "%",
+              reasons: a.reasons,
+            })),
+          };
+
+          showResult(summary, "✅ Quick Search Complete");
+        } catch (error) {
+          showError(error.message);
+        }
+      }
+
+      async function testGameSearch(gameName) {
+        try {
+          resultsDiv.innerHTML = `<div class="text-purple-600">🎮 Searching for ${gameName} cheats...</div>`;
+          const response = await fetch(`${API_URL}/analyze-game`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gameName }),
+          });
+          const data = await response.json();
+
+          // Format results nicely
+          const summary = {
+            game: gameName,
+            totalVideos: data.totalVideosAnalyzed,
+            strikableCount: data.strikableVideosCount,
+            topKeywords: data.keywords.topKeywords.slice(0, 3),
+            topStrikableVideos: data.strikableVideos.slice(0, 5).map((v) => ({
+              title: v.title,
+              confidence: v.confidenceScore + "%",
+              url: v.url,
+            })),
+          };
+
+          showResult(summary, `✅ Game Search: ${gameName}`);
+        } catch (error) {
+          showError(error.message);
+        }
+      }
+
+      async function customSearch() {
+        const keywords = document.getElementById("customKeyword").value;
+        const maxResults =
+          parseInt(document.getElementById("maxResults").value) || 5;
+
+        if (!keywords) {
+          showError("Please enter keywords");
+          return;
+        }
+
+        try {
+          resultsDiv.innerHTML =
+            '<div class="text-indigo-600">🔍 Custom search in progress...</div>';
+          const response = await fetch(`${API_URL}/analyze`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ keywords, maxResults }),
+          });
+          const data = await response.json();
+
+          showResult(data, `✅ Custom Search: "${keywords}"`);
+        } catch (error) {
+          showError(error.message);
+        }
+      }
+    </script>
+  </body>
+</html>
