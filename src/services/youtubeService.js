@@ -93,9 +93,14 @@ class YouTubeService {
       if (Array.isArray(pipedTrending) && pipedTrending.length > 0) {
         return pipedTrending;
       }
-      console.warn("Piped trending returned no results, falling back to yt-dlp");
+      console.warn(
+        "Piped trending returned no results, falling back to yt-dlp"
+      );
     } catch (err) {
-      console.warn("Piped trending failed, falling back to yt-dlp:", err.message);
+      console.warn(
+        "Piped trending failed, falling back to yt-dlp:",
+        err.message
+      );
     }
 
     console.log("Using yt-dlp fallback for trending");

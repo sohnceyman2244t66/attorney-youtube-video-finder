@@ -29,6 +29,11 @@ class PreFilterService {
       "free coins",
       "free gems",
       "free vbucks",
+      "discord",
+      "injector",
+      "loader",
+      "key auth",
+      "spoof",
     ];
 
     // Keywords that indicate likely legitimate content
@@ -51,6 +56,15 @@ class PreFilterService {
       "update",
       "patch notes",
       "season",
+      "exposed",
+      "expose",
+      "banned",
+      "ban",
+      "report",
+      "settings",
+      "controller",
+      "creative",
+      "map code",
     ];
   }
 
@@ -84,6 +98,9 @@ class PreFilterService {
 
     if (titleLower.includes("download") && titleLower.includes("free")) {
       infringementScore += 3;
+    }
+    if (/(discord|t\.me|telegram)\//.test(descLower)) {
+      infringementScore += 2; // suspicious outbound promo
     }
 
     // Calculate confidence

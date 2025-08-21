@@ -11,16 +11,73 @@ class OpenAIService {
   // Analyze video for potential copyright infringement
   async analyzeVideoForInfringement(video) {
     try {
-      const prompt = `Quick copyright check. Reply only JSON.
+      // Heuristic guardrail: only flag obvious cheat promotion or clear piracy from title/desc
+      const title = String(video.title || "");
+      const description = String(video.description || "");
+      const text = `${title}\n${description}`.toLowerCase();
 
-"${video.title}" by ${video.author}
+      const promoIndicators = [
+        "download",
+        "undetected",
+        "free",
+        "link",
+        "discord",
+        "telegram",
+        "injector",
+        "loader",
+        "bypass",
+        "cheat menu",
+        "aimbot",
+        "esp",
+        "wallhack",
+        "crack",
+        "cracked",
+        "script",
+        "cfg",
+        "paste",
+      ];
 
-Check for: full movies/shows, game cheats/hacks, pirated content, "free" paid content
+      const legitContextIndicators = [
+        "expose",
+        "exposed",
+        "ban",
+        "banned",
+        "caught",
+        "hunter",
+        "counter",
+        "report",
+        "settings",
+        "how to report",
+        "news",
+        "update",
+        "montage",
+        "highlights",
+        "clip",
+        "creative",
+        "map code",
+        "gamemode",
+        "controller settings",
+      ];
 
+      const hasPromoIndicator = promoIndicators.some((w) => text.includes(w));
+      const hasLegitContext = legitContextIndicators.some((w) => text.includes(w));
+
+      const prompt = `Only output JSON. Decide if the video is clearly promoting copyright infringement (not just discussing it).
+
+Video title: "${title}"
+Channel: ${video.author || ""}
+Description (snippet): "${description.slice(0, 200)}"
+
+Rules:
+- Only mark as infringing if it is CLEAR promotion/availability (e.g., download/undetected/free/link/discord/injector/loader/bypass) of cheats or pirated media.
+- Do NOT mark as infringing for news, discussions, tutorials against cheating, controller settings, montages, highlights, or exposure content.
+- If ambiguous, set isLikelyInfringing=false with low confidence.
+
+Return JSON with:
 {
   "isLikelyInfringing": boolean,
   "confidenceScore": 0-100,
-  "reasons": ["max 3 short reasons"],
+  "reasons": ["max 3 very short reasons"],
   "copyrightType": "movie|tvshow|music|game|software|other|none",
   "fairUseFactors": []
 }`;
@@ -40,8 +97,26 @@ Check for: full movies/shows, game cheats/hacks, pirated content, "free" paid co
 
       const analysis = JSON.parse(response.choices[0].message.content);
 
+      // Post-process with heuristic guardrail to reduce false positives
+      const adjusted = { ...analysis };
+      if (!hasPromoIndicator || hasLegitContext) {
+        // If no promo words or has legit context, do not flag as infringing
+        adjusted.isLikelyInfringing = false;
+        adjusted.confidenceScore = Math.min(analysis.confidenceScore || 0, 60);
+        if (!hasPromoIndicator) {
+          adjusted.reasons = ["No explicit download/promo terms in title/desc"];
+        } else if (hasLegitContext) {
+          adjusted.reasons = ["Appears to discuss/expose, not promote"];
+        }
+        adjusted.copyrightType = analysis.copyrightType || "none";
+        adjusted.fairUseFactors = [];
+      } else {
+        // If promo indicators present, ensure confidence is reasonably high
+        adjusted.confidenceScore = Math.max(analysis.confidenceScore || 0, 70);
+      }
+
       return {
-        ...analysis,
+        ...adjusted,
         videoId: video.id,
         videoTitle: video.title,
         channelName: video.author,
