@@ -13,7 +13,24 @@ class YtDlpService {
 
   execJson(args) {
     return new Promise((resolve, reject) => {
-      const cmdArgs = ["-J", "--quiet", "--no-warnings", ...args];
+      const cmdArgs = [
+        "-J",
+        "--quiet",
+        "--no-warnings",
+        // Avoid network-heavy actions that can trigger bot checks
+        "--ignore-errors",
+        "--flat-playlist",
+        "--force-ipv4",
+        "--geo-bypass",
+        "--retries",
+        "3",
+        "--socket-timeout",
+        "15",
+        "--no-check-certificates",
+        "--extractor-args",
+        "youtube:player_client=web;search_preferences=EgIQAQ%3D%3D",
+        ...args,
+      ];
       console.log(`yt-dlp exec: ${this.binaryPath} ${cmdArgs.join(" ")}`);
       const child = execFile(
         this.binaryPath,

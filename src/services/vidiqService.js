@@ -96,4 +96,3 @@ class VidIQService {
 }
 
 export default new VidIQService();
-

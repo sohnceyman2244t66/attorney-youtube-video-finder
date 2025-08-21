@@ -63,7 +63,12 @@ app.post("/api/analyze", async (req, res) => {
   console.log("Request body:", req.body);
 
   try {
-    const { keywords, category, maxResults = 50, channelWhitelist = [] } = req.body;
+    const {
+      keywords,
+      category,
+      maxResults = 50,
+      channelWhitelist = [],
+    } = req.body;
 
     if (!keywords && !category) {
       console.log("Missing keywords and category, returning 400");
@@ -106,8 +111,8 @@ app.post("/api/analyze", async (req, res) => {
     const normalizedWhitelist = new Set(
       (channelWhitelist || []).map((c) => String(c).toLowerCase())
     );
-    const videosAfterWhitelist = videos.filter((v) =>
-      !normalizedWhitelist.has(String(v.author || "").toLowerCase())
+    const videosAfterWhitelist = videos.filter(
+      (v) => !normalizedWhitelist.has(String(v.author || "").toLowerCase())
     );
 
     // Pre-filter videos to reduce AI load

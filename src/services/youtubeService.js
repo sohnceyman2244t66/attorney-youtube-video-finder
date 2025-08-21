@@ -49,7 +49,19 @@ class YouTubeService {
 
   // Search videos - go straight to yt-dlp since all APIs are blocked
   async searchVideos(query, maxResults = 50, retryCount = 0) {
-    console.log("Using yt-dlp for search (APIs blocked)");
+    // Prefer Piped in cloud to avoid YouTube bot checks, fallback to yt-dlp
+    try {
+      console.log("Trying Piped for search first");
+      const pipedResults = await pipedService.searchVideos(query, maxResults);
+      if (Array.isArray(pipedResults) && pipedResults.length > 0) {
+        return pipedResults;
+      }
+      console.warn("Piped returned no results, falling back to yt-dlp");
+    } catch (err) {
+      console.warn("Piped search failed, falling back to yt-dlp:", err.message);
+    }
+
+    console.log("Using yt-dlp fallback for search");
     return await ytDlpService.searchVideos(query, maxResults);
   }
 
@@ -59,7 +71,22 @@ class YouTubeService {
     maxResults = 50,
     retryCount = 0
   ) {
-    console.log("Using yt-dlp for trending (APIs blocked)");
+    // Prefer Piped trending; fallback to yt-dlp approximation
+    try {
+      console.log("Trying Piped for trending first");
+      const pipedTrending = await pipedService.getTrendingVideos(
+        category,
+        maxResults
+      );
+      if (Array.isArray(pipedTrending) && pipedTrending.length > 0) {
+        return pipedTrending;
+      }
+      console.warn("Piped trending returned no results, falling back to yt-dlp");
+    } catch (err) {
+      console.warn("Piped trending failed, falling back to yt-dlp:", err.message);
+    }
+
+    console.log("Using yt-dlp fallback for trending");
     return await ytDlpService.getTrendingVideos(category, maxResults);
   }
 
