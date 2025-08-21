@@ -36,6 +36,33 @@ class PreFilterService {
       "spoof",
     ];
 
+    // High-weight distribution indicators
+    this.distributionIndicators = [
+      "download",
+      "free",
+      "link",
+      "discord",
+      "telegram",
+      "t.me",
+      "injector",
+      "loader",
+      "bypass",
+      "keyauth",
+      "key auth",
+      "pastebin",
+      "mediafire",
+      "mega",
+      "mega.nz",
+      "gofile",
+      "google drive",
+      "drive.google.com",
+      "bit.ly",
+      "tinyurl",
+      "goo.gl",
+      "crack",
+      "cracked",
+    ];
+
     // Keywords that indicate likely legitimate content
     this.legitimateKeywords = [
       "official",
@@ -78,10 +105,21 @@ class PreFilterService {
     let infringementScore = 0;
     let legitimateScore = 0;
 
+    // Shorts heuristic: de-prioritize likely Shorts
+    const duration = Number.parseInt(video.lengthSeconds || 0, 10) || 0;
+    const isShort = duration > 0 && duration <= 75;
+
     // Check title and description for keywords
     this.infringementKeywords.forEach((keyword) => {
       if (combined.includes(keyword)) {
-        infringementScore += 2;
+        infringementScore += 1; // base weight for generic cheat terms
+      }
+    });
+
+    // Strongly weight distribution indicators
+    this.distributionIndicators.forEach((keyword) => {
+      if (combined.includes(keyword)) {
+        infringementScore += 3;
       }
     });
 
@@ -103,13 +141,18 @@ class PreFilterService {
       infringementScore += 2; // suspicious outbound promo
     }
 
+    // Shorts reduce priority if no distribution indicators
+    if (isShort) {
+      infringementScore = Math.max(0, infringementScore - 2);
+    }
+
     // Calculate confidence
     const totalScore = infringementScore + legitimateScore;
     const infringementProbability =
       totalScore > 0 ? infringementScore / totalScore : 0;
 
     return {
-      shouldAnalyze: infringementScore > 0 || legitimateScore === 0,
+      shouldAnalyze: infringementScore >= 2 || legitimateScore === 0,
       infringementScore,
       legitimateScore,
       infringementProbability,

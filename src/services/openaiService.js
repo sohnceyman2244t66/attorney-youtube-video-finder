@@ -16,25 +16,46 @@ class OpenAIService {
       const description = String(video.description || "");
       const text = `${title}\n${description}`.toLowerCase();
 
-      const promoIndicators = [
+      // Separate cheat terms from distribution/promo indicators
+      const cheatTerms = [
+        "cheat",
+        "cheats",
+        "aimbot",
+        "esp",
+        "wallhack",
+        "mod menu",
+        "hack",
+        "hacks",
+        "exploit",
+        "script",
+        "cfg",
+      ];
+
+      const distributionIndicators = [
         "download",
         "undetected",
         "free",
         "link",
         "discord",
         "telegram",
+        "t.me",
         "injector",
         "loader",
         "bypass",
-        "cheat menu",
-        "aimbot",
-        "esp",
-        "wallhack",
+        "keyauth",
+        "key auth",
+        "pastebin",
+        "mediafire",
+        "mega.nz",
+        "gofile",
+        "google drive",
+        "drive.google.com",
+        "bit.ly",
+        "tinyurl",
+        "goo.gl",
         "crack",
         "cracked",
-        "script",
-        "cfg",
-        "paste",
+        "undetect",
       ];
 
       const legitContextIndicators = [
@@ -59,20 +80,27 @@ class OpenAIService {
         "controller settings",
       ];
 
-      const hasPromoIndicator = promoIndicators.some((w) => text.includes(w));
+      const hasCheatTerm = cheatTerms.some((w) => text.includes(w));
+      const hasDistributionIndicator = distributionIndicators.some((w) =>
+        text.includes(w)
+      );
       const hasLegitContext = legitContextIndicators.some((w) =>
         text.includes(w)
       );
 
-      const prompt = `Only output JSON. Decide if the video is clearly promoting copyright infringement (not just discussing it).
+      const isShort =
+        (Number.parseInt(video.lengthSeconds || 0, 10) || 0) > 0 &&
+        (Number.parseInt(video.lengthSeconds || 0, 10) || 0) <= 75;
+
+      const prompt = `Only output JSON. Decide if the video is clearly promoting distribution/access to cheats or pirated content (not just discussing or showcasing gameplay).
 
 Video title: "${title}"
 Channel: ${video.author || ""}
 Description (snippet): "${description.slice(0, 200)}"
 
 Rules:
-- Only mark as infringing if it is CLEAR promotion/availability (e.g., download/undetected/free/link/discord/injector/loader/bypass) of cheats or pirated media.
-- Do NOT mark as infringing for news, discussions, tutorials against cheating, controller settings, montages, highlights, or exposure content.
+- Only mark as infringing if BOTH (a) cheat/piracy context is present AND (b) distribution/promo indicators exist (e.g., download/free/link/discord/telegram/injector/loader/bypass/pastebin/mediafire/mega).
+- Do NOT mark as infringing for news, discussions, tutorials against cheating, controller settings, montages, highlights, memes, short clips, or exposure content.
 - If ambiguous, set isLikelyInfringing=false with low confidence.
 
 Return JSON with:
@@ -101,20 +129,24 @@ Return JSON with:
 
       // Post-process with heuristic guardrail to reduce false positives
       const adjusted = { ...analysis };
-      if (!hasPromoIndicator || hasLegitContext) {
-        // If no promo words or has legit context, do not flag as infringing
+      if (!hasCheatTerm || !hasDistributionIndicator || hasLegitContext || isShort) {
+        // Require BOTH cheat term and distribution indicator, and exclude legit contexts and likely Shorts
         adjusted.isLikelyInfringing = false;
-        adjusted.confidenceScore = Math.min(analysis.confidenceScore || 0, 60);
-        if (!hasPromoIndicator) {
-          adjusted.reasons = ["No explicit download/promo terms in title/desc"];
+        adjusted.confidenceScore = Math.min(analysis.confidenceScore || 0, 50);
+        if (!hasCheatTerm) {
+          adjusted.reasons = ["No cheat context detected"];
+        } else if (!hasDistributionIndicator) {
+          adjusted.reasons = ["No distribution/promo indicators present"];
         } else if (hasLegitContext) {
           adjusted.reasons = ["Appears to discuss/expose, not promote"];
+        } else if (isShort) {
+          adjusted.reasons = ["Short clip likely not distributing cheats"];
         }
         adjusted.copyrightType = analysis.copyrightType || "none";
         adjusted.fairUseFactors = [];
       } else {
         // If promo indicators present, ensure confidence is reasonably high
-        adjusted.confidenceScore = Math.max(analysis.confidenceScore || 0, 70);
+        adjusted.confidenceScore = Math.max(analysis.confidenceScore || 0, 80);
       }
 
       return {
