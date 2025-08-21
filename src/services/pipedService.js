@@ -12,7 +12,12 @@ class PipedService {
       // Other stable instances
       "https://api-piped.mha.fi",
       "https://piped-api.garudalinux.org",
-      "https://pipedapi.colinslegacy.com",
+      "https://pipedapi.adminforge.de",
+      "https://pipedapi.privacy.com.de",
+      "https://pipedapi.qdi.fi",
+      "https://pipedapi.rivo.lol",
+      "https://piped-api.linwood.dev",
+      "https://pipedapi.palveluntarjoaja.eu",
       "https://api.piped.yt",
     ];
     this.currentIndex = 0;
@@ -23,18 +28,27 @@ class PipedService {
 
   async getInstances() {
     const now = Date.now();
-    if (
-      now - this.lastInstanceRefresh > this.instanceRefreshInterval ||
-      this.workingInstances.length === 0
-    ) {
-      console.log("Refreshing Piped instances list...");
-      this.workingInstances = await instanceFinder.getWorkingPipedInstances();
-      this.lastInstanceRefresh = now;
-      this.currentIndex = 0;
+    // Only attempt dynamic discovery if explicitly enabled
+    if (process.env.PIPED_DYNAMIC === "1") {
+      if (
+        now - this.lastInstanceRefresh > this.instanceRefreshInterval ||
+        this.workingInstances.length === 0
+      ) {
+        console.log("Refreshing Piped instances list...");
+        try {
+          this.workingInstances = await instanceFinder.getWorkingPipedInstances();
+        } catch (e) {
+          console.warn("Dynamic Piped instance fetch failed:", e.message);
+          this.workingInstances = [];
+        }
+        this.lastInstanceRefresh = now;
+        this.currentIndex = 0;
+      }
+      if (this.workingInstances.length > 0) {
+        return this.workingInstances;
+      }
     }
-    return this.workingInstances.length > 0
-      ? this.workingInstances
-      : this.defaultInstances;
+    return this.defaultInstances;
   }
 
   async getCurrentInstance() {
