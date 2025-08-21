@@ -1,6 +1,7 @@
 import { execFile } from "child_process";
 import path from "path";
 import cacheService from "./cacheService.js";
+import pipedService from "./pipedService.js";
 
 class YtDlpService {
   constructor() {
@@ -80,15 +81,24 @@ class YtDlpService {
     }
 
     const spec = `ytsearch${maxResults}:${query}`;
-    const json = await this.execJson([spec]);
-    const entries = json.entries || json.items || [];
-    const videos = this.mapEntriesToVideos(entries).slice(0, maxResults);
-    console.log(`yt-dlp: found ${videos.length} videos for query: ${query}`);
+    try {
+      const json = await this.execJson([spec]);
+      const entries = json.entries || json.items || [];
+      const videos = this.mapEntriesToVideos(entries).slice(0, maxResults);
+      console.log(`yt-dlp: found ${videos.length} videos for query: ${query}`);
 
-    // Cache the results
-    cacheService.setSearchResults(query, maxResults, videos);
-
-    return videos;
+      // Cache the results
+      cacheService.setSearchResults(query, maxResults, videos);
+      return videos;
+    } catch (error) {
+      console.warn(
+        `yt-dlp search failed (falling back to Piped): ${error.message}`
+      );
+      const pipedVideos = await pipedService.searchVideos(query, maxResults);
+      // Cache fallback results too
+      cacheService.setSearchResults(query, maxResults, pipedVideos);
+      return pipedVideos;
+    }
   }
 
   async getTrendingVideos(category = "default", maxResults = 50) {
