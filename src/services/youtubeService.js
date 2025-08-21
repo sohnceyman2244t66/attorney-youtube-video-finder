@@ -49,6 +49,12 @@ class YouTubeService {
 
   // Search videos - go straight to yt-dlp since all APIs are blocked
   async searchVideos(query, maxResults = 50, retryCount = 0) {
+    // If forced via env, use Piped only (for cloud)
+    if (process.env.FORCE_PIPED === "1") {
+      console.log("FORCE_PIPED=1 -> using Piped only for search");
+      return await pipedService.searchVideos(query, maxResults);
+    }
+
     // Prefer Piped in cloud to avoid YouTube bot checks, fallback to yt-dlp
     try {
       console.log("Trying Piped for search first");
@@ -71,6 +77,12 @@ class YouTubeService {
     maxResults = 50,
     retryCount = 0
   ) {
+    // If forced via env, use Piped only (for cloud)
+    if (process.env.FORCE_PIPED === "1") {
+      console.log("FORCE_PIPED=1 -> using Piped only for trending");
+      return await pipedService.getTrendingVideos(category, maxResults);
+    }
+
     // Prefer Piped trending; fallback to yt-dlp approximation
     try {
       console.log("Trying Piped for trending first");
