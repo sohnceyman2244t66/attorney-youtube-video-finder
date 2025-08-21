@@ -36,7 +36,8 @@ class PipedService {
       ) {
         console.log("Refreshing Piped instances list...");
         try {
-          this.workingInstances = await instanceFinder.getWorkingPipedInstances();
+          this.workingInstances =
+            await instanceFinder.getWorkingPipedInstances();
         } catch (e) {
           console.warn("Dynamic Piped instance fetch failed:", e.message);
           this.workingInstances = [];

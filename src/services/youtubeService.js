@@ -12,6 +12,34 @@ class YouTubeService {
     this.instanceRefreshInterval = 600000; // 10 minutes
   }
 
+  // Determine if a video is a YouTube Short based on duration or title/description hints
+  isShortVideo(video) {
+    try {
+      const maxShort = config.filters?.shortsMaxSeconds ?? 75;
+      const duration = Number.parseInt(video.lengthSeconds || 0, 10) || 0;
+      if (duration > 0 && duration <= maxShort) return true;
+      const title = String(video.title || "").toLowerCase();
+      const desc = String(video.description || "").toLowerCase();
+      if (
+        title.includes("#shorts") ||
+        title.includes(" shorts ") ||
+        title.endsWith(" shorts") ||
+        title.startsWith("shorts ")
+      )
+        return true;
+      if (desc.includes("#shorts") || desc.includes(" shorts ")) return true;
+    } catch (_) {}
+    return false;
+  }
+
+  // Optionally remove Shorts from a list of videos
+  maybeFilterShorts(videos) {
+    if (!Array.isArray(videos)) return [];
+    const skipShorts = config.filters?.skipShorts === true;
+    if (!skipShorts) return videos;
+    return videos.filter((v) => !this.isShortVideo(v));
+  }
+
   // Get working instances dynamically
   async getWorkingInstances() {
     const now = Date.now();
@@ -51,11 +79,16 @@ class YouTubeService {
   async searchVideos(query, maxResults = 50, retryCount = 0) {
     // If forced via env, use Piped only (for cloud)
     if (process.env.FORCE_PIPED === "1") {
-      console.log("FORCE_PIPED=1 -> using Piped for search (with yt-dlp rescue)");
+      console.log(
+        "FORCE_PIPED=1 -> using Piped for search (with yt-dlp rescue)"
+      );
       try {
         return await pipedService.searchVideos(query, maxResults);
       } catch (e) {
-        console.warn("Piped failed under FORCE_PIPED, using yt-dlp as rescue:", e.message);
+        console.warn(
+          "Piped failed under FORCE_PIPED, using yt-dlp as rescue:",
+          e.message
+        );
         return await ytDlpService.searchVideos(query, maxResults);
       }
     }
@@ -65,7 +98,7 @@ class YouTubeService {
       console.log("Trying Piped for search first");
       const pipedResults = await pipedService.searchVideos(query, maxResults);
       if (Array.isArray(pipedResults) && pipedResults.length > 0) {
-        return pipedResults;
+        return this.maybeFilterShorts(pipedResults).slice(0, maxResults);
       }
       console.warn("Piped returned no results, falling back to yt-dlp");
     } catch (err) {
@@ -73,7 +106,8 @@ class YouTubeService {
     }
 
     console.log("Using yt-dlp fallback for search");
-    return await ytDlpService.searchVideos(query, maxResults);
+    const ytdlp = await ytDlpService.searchVideos(query, maxResults);
+    return this.maybeFilterShorts(ytdlp).slice(0, maxResults);
   }
 
   // Get trending videos - go straight to yt-dlp since all APIs are blocked
@@ -84,7 +118,9 @@ class YouTubeService {
   ) {
     // If forced via env, use Piped only (for cloud)
     if (process.env.FORCE_PIPED === "1") {
-      console.log("FORCE_PIPED=1 -> using Piped for trending (with yt-dlp rescue)");
+      console.log(
+        "FORCE_PIPED=1 -> using Piped for trending (with yt-dlp rescue)"
+      );
       try {
         return await pipedService.getTrendingVideos(category, maxResults);
       } catch (e) {
@@ -104,7 +140,7 @@ class YouTubeService {
         maxResults
       );
       if (Array.isArray(pipedTrending) && pipedTrending.length > 0) {
-        return pipedTrending;
+        return this.maybeFilterShorts(pipedTrending).slice(0, maxResults);
       }
       console.warn(
         "Piped trending returned no results, falling back to yt-dlp"
@@ -117,7 +153,8 @@ class YouTubeService {
     }
 
     console.log("Using yt-dlp fallback for trending");
-    return await ytDlpService.getTrendingVideos(category, maxResults);
+    const ytdlp = await ytDlpService.getTrendingVideos(category, maxResults);
+    return this.maybeFilterShorts(ytdlp).slice(0, maxResults);
   }
 
   // Get video details - simplified since we're using yt-dlp

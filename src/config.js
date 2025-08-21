@@ -10,6 +10,13 @@ export const config = {
     instances: [],
     defaultInstance: null,
   },
+  filters: {
+    // Skip YouTube Shorts by default; set SKIP_SHORTS=0 to include them
+    skipShorts: process.env.SKIP_SHORTS !== "0",
+    // Treat videos with duration <= this as Shorts (seconds)
+    shortsMaxSeconds:
+      Number.parseInt(process.env.SHORTS_MAX_SECONDS || "75", 10) || 75,
+  },
   server: {
     port: process.env.PORT || 3000,
   },
