@@ -275,7 +275,10 @@ app.post("/api/analyze-game", async (req, res) => {
     if (allVideos.length === 0) {
       return res.json({
         message: "No videos found",
+        gameName: gameName,
         keywords: keywordData,
+        totalVideosAnalyzed: 0,
+        strikableVideosCount: 0,
         strikableVideos: [],
       });
     }

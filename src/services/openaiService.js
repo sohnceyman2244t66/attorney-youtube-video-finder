@@ -60,7 +60,9 @@ class OpenAIService {
       ];
 
       const hasPromoIndicator = promoIndicators.some((w) => text.includes(w));
-      const hasLegitContext = legitContextIndicators.some((w) => text.includes(w));
+      const hasLegitContext = legitContextIndicators.some((w) =>
+        text.includes(w)
+      );
 
       const prompt = `Only output JSON. Decide if the video is clearly promoting copyright infringement (not just discussing it).
 
