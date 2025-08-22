@@ -129,7 +129,12 @@ Return JSON with:
 
       // Post-process with heuristic guardrail to reduce false positives
       const adjusted = { ...analysis };
-      if (!hasCheatTerm || !hasDistributionIndicator || hasLegitContext || isShort) {
+      if (
+        !hasCheatTerm ||
+        !hasDistributionIndicator ||
+        hasLegitContext ||
+        isShort
+      ) {
         // Require BOTH cheat term and distribution indicator, and exclude legit contexts and likely Shorts
         adjusted.isLikelyInfringing = false;
         adjusted.confidenceScore = Math.min(analysis.confidenceScore || 0, 50);

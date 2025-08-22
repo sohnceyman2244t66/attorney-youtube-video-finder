@@ -1,48 +1,71 @@
+// Attorney YouTube Video Finder - Modern UI JavaScript
+
 // DOM elements
 const keywordsInput = document.getElementById("keywords");
 const categorySelect = document.getElementById("category");
 const gameNameInput = document.getElementById("gameName");
 const channelWhitelistInput = document.getElementById("channelWhitelist");
 const analyzeBtn = document.getElementById("analyzeBtn");
-const loadingIndicator = document.getElementById("loadingIndicator");
-const summaryReport = document.getElementById("summaryReport");
+const loadingOverlay = document.getElementById("loadingOverlay");
+const summarySection = document.getElementById("summarySection");
 const resultsSection = document.getElementById("resultsSection");
 const resultsContainer = document.getElementById("resultsContainer");
 const errorMessage = document.getElementById("errorMessage");
 const errorText = document.getElementById("errorText");
 
-// Tab elements
-const generalTab = document.getElementById("generalTab");
-const gameTab = document.getElementById("gameTab");
-const generalSearch = document.getElementById("generalSearch");
-const gameSearch = document.getElementById("gameSearch");
+// Mode switching
+const modeBtns = document.querySelectorAll('.mode-btn');
+const searchModes = document.querySelectorAll('.search-mode');
 
-let currentTab = "general";
+let currentMode = 'general';
 
 // Event listeners
 analyzeBtn.addEventListener("click", performAnalysis);
 
-// Tab switching
-generalTab.addEventListener("click", () => switchTab("general"));
-gameTab.addEventListener("click", () => switchTab("game"));
+// Mode switching
+modeBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode;
+    currentMode = mode;
+    
+    // Update buttons
+    modeBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Update search modes
+    searchModes.forEach(m => m.classList.remove('active'));
+    document.getElementById(`${mode}SearchMode`).classList.add('active');
+    
+    // Clear inputs when switching
+    clearInputs();
+    hideError();
+  });
+});
 
-function switchTab(tab) {
-  currentTab = tab;
+function clearInputs() {
+  keywordsInput.value = '';
+  categorySelect.value = '';
+  gameNameInput.value = '';
+}
 
-  if (tab === "general") {
-    generalTab.classList.add("active");
-    gameTab.classList.remove("active");
-    generalSearch.classList.remove("hidden");
-    gameSearch.classList.add("hidden");
-  } else {
-    gameTab.classList.add("active");
-    generalTab.classList.remove("active");
-    gameSearch.classList.remove("hidden");
-    generalSearch.classList.add("hidden");
-  }
+// Helper function to show/hide error
+function showError(message) {
+  errorText.textContent = message;
+  errorMessage.classList.remove("hidden");
+  errorMessage.classList.add("fade-in");
+}
 
-  // Clear previous errors
-  hideError();
+function hideError() {
+  errorMessage.classList.add("hidden");
+}
+
+// Update header stats
+let totalVideosScanned = 0;
+let totalInfringementsFound = 0;
+
+function updateHeaderStats() {
+  document.getElementById('videosScanned').textContent = totalVideosScanned.toLocaleString();
+  document.getElementById('infringementsFound').textContent = totalInfringementsFound.toLocaleString();
 }
 
 // Progress tracking helper
@@ -59,7 +82,9 @@ function initProgressTracking() {
   const videoTitle = document.getElementById("videoTitle");
 
   // Show progress section
+  loadingOverlay.classList.add("hidden");
   progressSection.classList.remove("hidden");
+  progressSection.classList.add("fade-in");
 
   // Connect to SSE endpoint
   const eventSource = new EventSource("/api/analyze/progress");
@@ -76,14 +101,14 @@ function initProgressTracking() {
     switch (data.step) {
       case "keyword_research":
       case "searching":
-        currentStep.textContent = data.message;
+        currentStep.innerHTML = `<i class="fas fa-search"></i><span>${data.message}</span>`;
         videoCount.classList.add("hidden");
         currentVideo.classList.add("hidden");
         break;
 
       case "search_complete":
       case "filter_complete":
-        currentStep.textContent = data.message;
+        currentStep.innerHTML = `<i class="fas fa-filter"></i><span>${data.message}</span>`;
         if (data.totalVideos) {
           totalCount.textContent = data.totalVideos;
           videoCount.classList.remove("hidden");
@@ -91,8 +116,7 @@ function initProgressTracking() {
         break;
 
       case "analyzing":
-        currentStep.textContent =
-          "Analyzing videos for copyright infringement...";
+        currentStep.innerHTML = `<i class="fas fa-robot"></i><span>Analyzing videos for copyright infringement...</span>`;
         if (data.current && data.total) {
           analyzedCount.textContent = data.current;
           totalCount.textContent = data.total;
@@ -113,12 +137,12 @@ function initProgressTracking() {
   return eventSource;
 }
 
-// Perform analysis
+// Main analysis function
 async function performAnalysis() {
-  if (currentTab === "general") {
-    performGeneralAnalysis();
+  if (currentMode === 'game') {
+    await performGameAnalysis();
   } else {
-    performGameAnalysis();
+    await performGeneralAnalysis();
   }
 }
 
@@ -136,12 +160,13 @@ async function performGeneralAnalysis() {
   // Reset UI
   hideError();
   resultsContainer.innerHTML = "";
-  summaryReport.classList.add("hidden");
+  summarySection.classList.add("hidden");
   resultsSection.classList.add("hidden");
 
   // Show loading
   analyzeBtn.disabled = true;
-  loadingIndicator.classList.remove("hidden");
+  analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
+  loadingOverlay.classList.remove("hidden");
 
   // Start progress tracking
   const eventSource = initProgressTracking();
@@ -177,7 +202,8 @@ async function performGeneralAnalysis() {
     showError(error.message || "Failed to analyze videos. Please try again.");
   } finally {
     analyzeBtn.disabled = false;
-    loadingIndicator.classList.add("hidden");
+    analyzeBtn.innerHTML = '<i class="fas fa-play"></i><span>Start Analysis</span>';
+    loadingOverlay.classList.add("hidden");
     eventSource.close();
     // Hide progress after a delay
     setTimeout(() => {
@@ -199,12 +225,13 @@ async function performGameAnalysis() {
   // Reset UI
   hideError();
   resultsContainer.innerHTML = "";
-  summaryReport.classList.add("hidden");
+  summarySection.classList.add("hidden");
   resultsSection.classList.add("hidden");
 
   // Show loading
   analyzeBtn.disabled = true;
-  loadingIndicator.classList.remove("hidden");
+  analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
+  loadingOverlay.classList.remove("hidden");
 
   // Start progress tracking
   const eventSource = initProgressTracking();
@@ -240,7 +267,8 @@ async function performGameAnalysis() {
     );
   } finally {
     analyzeBtn.disabled = false;
-    loadingIndicator.classList.add("hidden");
+    analyzeBtn.innerHTML = '<i class="fas fa-play"></i><span>Start Analysis</span>';
+    loadingOverlay.classList.add("hidden");
     eventSource.close();
     // Hide progress after a delay
     setTimeout(() => {
@@ -269,6 +297,10 @@ function displayResults(data) {
     return;
   }
 
+  // Update header stats
+  totalVideosScanned += analyses.length;
+  updateHeaderStats();
+
   // Show summary report
   if (report) {
     displaySummaryReport(report);
@@ -276,134 +308,105 @@ function displayResults(data) {
 
   // Filter and display only infringing videos
   const infringingVideos = analyses.filter((a) => a.isLikelyInfringing);
+  totalInfringementsFound += infringingVideos.length;
+  updateHeaderStats();
 
   if (infringingVideos.length === 0) {
     resultsContainer.innerHTML = `
-            <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-                <p class="font-medium">No copyright infringement detected</p>
-                <p class="text-sm">None of the analyzed videos appear to be infringing copyright.</p>
-            </div>
-        `;
+      <div class="glass-card fade-in" style="background: rgba(38, 217, 111, 0.1); border-color: rgba(38, 217, 111, 0.2);">
+        <div class="flex items-center gap-3">
+          <div class="text-3xl text-green-400">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div>
+            <p class="font-semibold text-lg mb-1">No copyright infringement detected</p>
+            <p class="text-sm opacity-80">None of the analyzed videos appear to be infringing copyright.</p>
+          </div>
+        </div>
+      </div>
+    `;
   } else {
-    infringingVideos.forEach((video) => {
-      resultsContainer.appendChild(createVideoCard(video));
+    infringingVideos.forEach((video, index) => {
+      resultsContainer.appendChild(createVideoCard(video, index + 1));
     });
   }
 
   resultsSection.classList.remove("hidden");
+  resultsSection.classList.add("fade-in");
 }
 
 // Display summary report
 function displaySummaryReport(report) {
-  document.getElementById("totalAnalyzed").textContent =
-    report.summary.totalAnalyzed;
-  document.getElementById("likelyInfringing").textContent =
-    report.summary.likelyInfringing;
-  document.getElementById("highConfidence").textContent =
-    report.summary.highConfidence;
-  document.getElementById("infringementRate").textContent =
-    report.summary.percentageInfringing + "%";
+  document.getElementById("totalAnalyzed").textContent = report.summary.totalAnalyzed;
+  document.getElementById("likelyInfringing").textContent = report.summary.likelyInfringing;
+  document.getElementById("highConfidence").textContent = report.summary.highConfidence;
+  document.getElementById("infringementRate").textContent = report.summary.percentageInfringing + "%";
 
-  summaryReport.classList.remove("hidden");
+  summarySection.classList.remove("hidden");
+  summarySection.classList.add("fade-in");
 }
 
 // Create video card element
-function createVideoCard(analysis) {
+function createVideoCard(analysis, number) {
   const card = document.createElement("div");
-  card.className =
-    "bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow p-6";
+  card.className = "result-card fade-in";
 
-  const confidenceColor =
-    analysis.confidenceScore >= 80
-      ? "red"
-      : analysis.confidenceScore >= 60
-      ? "orange"
-      : "yellow";
+  const confidenceClass = analysis.confidenceScore >= 80 ? "confidence-high" : "confidence-medium";
 
   card.innerHTML = `
-        <div class="flex justify-between items-start mb-4">
-            <div class="flex-1">
-                <h3 class="text-lg font-semibold text-gray-900 mb-1">${escapeHtml(
-                  analysis.videoTitle
-                )}</h3>
-                <p class="text-sm text-gray-600">Channel: ${escapeHtml(
-                  analysis.channelName
-                )}</p>
-            </div>
-            <div class="ml-4">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${confidenceColor}-100 text-${confidenceColor}-800">
-                    ${analysis.confidenceScore}% Confidence
-                </span>
-            </div>
+    <div class="result-header">
+      <div class="result-info">
+        <div class="result-number">RESULT #${number}</div>
+        <h3 class="result-title">${escapeHtml(analysis.videoTitle)}</h3>
+        <div class="result-channel">
+          <i class="fas fa-user"></i>
+          ${escapeHtml(analysis.channelName)}
         </div>
-        
-        <div class="mb-4">
-            <p class="text-sm font-medium text-gray-700 mb-1">Copyright Type:</p>
-            <span class="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded">
-                ${capitalizeFirst(analysis.copyrightType)}
-            </span>
+      </div>
+      <div class="confidence-badge ${confidenceClass}">
+        <i class="fas fa-exclamation-triangle"></i>
+        ${analysis.confidenceScore}% Confidence
+      </div>
+    </div>
+    
+    <div class="result-meta">
+      <div class="meta-item">
+        <i class="fas fa-tag"></i>
+        ${capitalizeFirst(analysis.copyrightType)}
+      </div>
+      <div class="meta-item">
+        <i class="fas fa-calendar"></i>
+        ${new Date(analysis.analysisTimestamp).toLocaleDateString()}
+      </div>
+    </div>
+    
+    <div class="result-reasons">
+      <div class="reasons-label">Reasons for Detection</div>
+      <div class="reasons-list">
+        ${analysis.reasons.map(reason => `<span class="reason-tag">${escapeHtml(reason)}</span>`).join("")}
+      </div>
+    </div>
+    
+    ${analysis.fairUseFactors && analysis.fairUseFactors.length > 0 ? `
+      <div class="result-reasons">
+        <div class="reasons-label">Potential Fair Use Factors</div>
+        <div class="reasons-list">
+          ${analysis.fairUseFactors.map(factor => `<span class="reason-tag">${escapeHtml(factor)}</span>`).join("")}
         </div>
-        
-        <div class="mb-4">
-            <p class="text-sm font-medium text-gray-700 mb-1">Reasons for Detection:</p>
-            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                ${analysis.reasons
-                  .map((reason) => `<li>${escapeHtml(reason)}</li>`)
-                  .join("")}
-            </ul>
-        </div>
-        
-        ${
-          analysis.fairUseFactors && analysis.fairUseFactors.length > 0
-            ? `
-        <div class="mb-4">
-            <p class="text-sm font-medium text-gray-700 mb-1">Potential Fair Use Factors:</p>
-            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                ${analysis.fairUseFactors
-                  .map((factor) => `<li>${escapeHtml(factor)}</li>`)
-                  .join("")}
-            </ul>
-        </div>
-        `
-            : ""
-        }
-        
-        <div class="flex gap-2 mt-4">
-            <a href="https://www.youtube.com/watch?v=${analysis.videoId}" 
-               target="_blank" 
-               class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition">
-                View on YouTube
-                <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-            </a>
-        </div>
-    `;
+      </div>
+    ` : ""}
+    
+    <div class="result-actions">
+      <a href="https://www.youtube.com/watch?v=${analysis.videoId}" 
+         target="_blank" 
+         class="result-link">
+        <i class="fas fa-external-link-alt"></i>
+        View on YouTube
+      </a>
+    </div>
+  `;
 
   return card;
-}
-
-// Show error message
-function showError(message) {
-  errorText.textContent = message;
-  errorMessage.classList.remove("hidden");
-}
-
-// Hide error message
-function hideError() {
-  errorMessage.classList.add("hidden");
-}
-
-// Escape HTML to prevent XSS
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// Capitalize first letter
-function capitalizeFirst(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 // Display game analysis results
@@ -416,126 +419,88 @@ function displayGameResults(data) {
     gameName,
   } = data;
 
-  // Show summary report
-  const summaryHtml = `
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 class="text-2xl font-semibold mb-4">Game Cheat Analysis: ${escapeHtml(
-        gameName
-      )}</h2>
-      
-      <div class="grid md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-gray-50 p-4 rounded">
-          <p class="text-sm text-gray-600">Total Videos Analyzed</p>
-          <p class="text-2xl font-bold text-gray-900">${totalVideosAnalyzed}</p>
-        </div>
-        <div class="bg-red-50 p-4 rounded">
-          <p class="text-sm text-gray-600">Strikable Videos Found</p>
-          <p class="text-2xl font-bold text-red-600">${strikableVideosCount}</p>
-        </div>
-        <div class="bg-blue-50 p-4 rounded">
-          <p class="text-sm text-gray-600">Keywords Searched</p>
-          <p class="text-2xl font-bold text-blue-600">${
-            keywords.topKeywords.length + 1
-          }</p>
-        </div>
-      </div>
-      
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-2">Keywords Used:</h3>
-        <div class="flex flex-wrap gap-2">
-          <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm">
-            ${escapeHtml(keywords.mainKeyword)}
-          </span>
-          ${keywords.topKeywords
-            .slice(0, 5)
-            .map(
-              (k) => `
-            <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm">
-              ${escapeHtml(
-                k.keyword
-              )} (${k.monthlySearches.toLocaleString()} searches/mo)
-            </span>
-          `
-            )
-            .join("")}
-        </div>
-      </div>
+  // Update header stats
+  totalVideosScanned += totalVideosAnalyzed;
+  totalInfringementsFound += strikableVideosCount;
+  updateHeaderStats();
+
+  // Create custom summary for game results
+  const summaryData = {
+    summary: {
+      totalAnalyzed: totalVideosAnalyzed,
+      likelyInfringing: strikableVideosCount,
+      highConfidence: strikableVideos.filter(v => v.confidenceScore >= 80).length,
+      percentageInfringing: ((strikableVideosCount / totalVideosAnalyzed) * 100).toFixed(1)
+    }
+  };
+  displaySummaryReport(summaryData);
+
+  // Add keyword info
+  const keywordInfo = document.createElement("div");
+  keywordInfo.className = "glass-card fade-in mb-4";
+  keywordInfo.innerHTML = `
+    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+      <i class="fas fa-key text-accent-primary"></i>
+      Keywords Used for ${escapeHtml(gameName)}
+    </h3>
+    <div class="flex flex-wrap gap-2">
+      <span class="px-3 py-1 rounded-md text-sm font-medium" style="background: var(--accent-gradient); color: white;">
+        ${escapeHtml(keywords.mainKeyword)}
+      </span>
+      ${keywords.topKeywords.slice(0, 5).map(k => `
+        <span class="px-3 py-1 rounded-md text-sm" style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
+          ${escapeHtml(k.keyword)} <span class="opacity-60">(${k.monthlySearches.toLocaleString()}/mo)</span>
+        </span>
+      `).join("")}
     </div>
   `;
-
-  summaryReport.innerHTML = summaryHtml;
-  summaryReport.classList.remove("hidden");
+  summarySection.appendChild(keywordInfo);
 
   // Display strikable videos
   if (strikableVideos.length === 0) {
     resultsContainer.innerHTML = `
-      <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-        <p class="font-medium">No strikable videos found</p>
-        <p class="text-sm">None of the analyzed videos appear to be clear copyright infringement.</p>
+      <div class="glass-card fade-in" style="background: rgba(38, 217, 111, 0.1); border-color: rgba(38, 217, 111, 0.2);">
+        <div class="flex items-center gap-3">
+          <div class="text-3xl text-green-400">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div>
+            <p class="font-semibold text-lg mb-1">No strikable videos found</p>
+            <p class="text-sm opacity-80">None of the analyzed videos appear to be clear copyright infringement.</p>
+          </div>
+        </div>
       </div>
     `;
   } else {
-    // Create link list
-    const linkListHtml = `
-      <div class="bg-white rounded-lg shadow-sm p-6">
-        <h3 class="text-lg font-semibold mb-4">Strikable Videos (${
-          strikableVideos.length
-        })</h3>
-        <p class="text-sm text-gray-600 mb-4">
-          Below are YouTube videos that likely infringe on ${gameName} copyright:
-        </p>
-        
-        <div class="space-y-3">
-          ${strikableVideos
-            .map(
-              (video, index) => `
-            <div class="border-l-4 border-red-500 pl-4 py-2">
-              <div class="flex justify-between items-start">
-                <div class="flex-1">
-                  <p class="font-medium text-gray-900">${
-                    index + 1
-                  }. ${escapeHtml(video.title)}</p>
-                  <p class="text-sm text-gray-600">Channel: ${escapeHtml(
-                    video.channel
-                  )} | Confidence: ${video.confidenceScore}%</p>
-                  <p class="text-sm text-gray-500">Found with: "${escapeHtml(
-                    video.keyword
-                  )}"</p>
-                  <a href="${video.url}" 
-                     target="_blank" 
-                     class="text-blue-600 hover:text-blue-800 text-sm break-all">
-                    ${video.url}
-                  </a>
-                </div>
-                <button onclick="copyToClipboard('${video.url}')" 
-                        class="ml-4 p-2 text-gray-500 hover:text-gray-700">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
-                    </path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          `
-            )
-            .join("")}
-        </div>
-        
-        <div class="mt-6 flex gap-3">
-          <button onclick="copyAllLinks()" 
-                  class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm">
-            Copy All Links
-          </button>
-          <button onclick="exportToCSV()" 
-                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm">
-            Export as CSV
-          </button>
-        </div>
-      </div>
+    // Add export buttons
+    const exportActions = document.createElement("div");
+    exportActions.className = "results-actions mb-4";
+    exportActions.innerHTML = `
+      <button class="action-btn" onclick="exportToCSV()" title="Export as CSV">
+        <i class="fas fa-file-csv"></i>
+        Export CSV
+      </button>
+      <button class="action-btn" onclick="copyAllLinks()" title="Copy all links">
+        <i class="fas fa-link"></i>
+        Copy All Links
+      </button>
     `;
+    resultsSection.insertBefore(exportActions, resultsContainer);
 
-    resultsContainer.innerHTML = linkListHtml;
+    // Display each video
+    strikableVideos.forEach((video, index) => {
+      const analysis = {
+        videoId: video.url.split('v=')[1],
+        videoTitle: video.title,
+        channelName: video.channel,
+        isLikelyInfringing: true,
+        confidenceScore: video.confidenceScore,
+        reasons: video.reasons || ['Found with: "' + video.keyword + '"'],
+        copyrightType: 'game',
+        analysisTimestamp: new Date().toISOString()
+      };
+      resultsContainer.appendChild(createVideoCard(analysis, index + 1));
+    });
 
     // Store data for export functions
     window.currentStrikableVideos = strikableVideos;
@@ -543,6 +508,7 @@ function displayGameResults(data) {
   }
 
   resultsSection.classList.remove("hidden");
+  resultsSection.classList.add("fade-in");
 }
 
 // Copy single link to clipboard
@@ -550,9 +516,9 @@ function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
     // Show temporary success message
     const toast = document.createElement("div");
-    toast.className =
-      "fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg";
-    toast.textContent = "Link copied!";
+    toast.className = "fixed bottom-4 right-4 glass-card px-4 py-2 fade-in";
+    toast.style.background = "rgba(88, 101, 242, 0.9)";
+    toast.innerHTML = '<i class="fas fa-check mr-2"></i>Link copied!';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
   });
@@ -568,11 +534,7 @@ function copyAllLinks() {
 
 // Export results as CSV
 function exportToCSV() {
-  if (
-    !window.currentStrikableVideos ||
-    window.currentStrikableVideos.length === 0
-  )
-    return;
+  if (!window.currentStrikableVideos || window.currentStrikableVideos.length === 0) return;
 
   const csv = [
     ["Title", "Channel", "URL", "Confidence", "Keyword", "Reasons"],
@@ -592,9 +554,24 @@ function exportToCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${window.currentGameName}_strikable_videos_${
-    new Date().toISOString().split("T")[0]
-  }.csv`;
+  a.download = `${window.currentGameName}_strikable_videos_${new Date().toISOString().split("T")[0]}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Capitalize first letter
+function capitalizeFirst(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+  updateHeaderStats();
+});

@@ -3,213 +3,271 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      Attorney YouTube Video Finder - Copyright Infringement Detection
-    </title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-      rel="stylesheet"
-    />
+    <title>Attorney YouTube Video Finder - AI-Powered Copyright Detection</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="bg-gray-50">
-    <div class="container mx-auto px-4 py-8 max-w-7xl">
+  <body>
+    <!-- Background Effects -->
+    <div class="background-container">
+      <div class="gradient-sphere sphere-1"></div>
+      <div class="gradient-sphere sphere-2"></div>
+      <div class="gradient-sphere sphere-3"></div>
+      <div class="animated-bg"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
       <!-- Header -->
-      <header class="mb-10">
-        <h1 class="text-4xl font-bold text-gray-900 mb-2">
-          Attorney YouTube Video Finder
-        </h1>
-        <p class="text-lg text-gray-600">
-          AI-Powered Copyright Infringement Detection Tool
-        </p>
+      <header class="header glass-card fade-in">
+        <div class="header-content">
+          <div class="logo-section">
+            <div class="logo-icon">
+              <i class="fas fa-shield-halved"></i>
+            </div>
+            <div>
+              <h1 class="logo-text">Attorney YouTube Video Finder</h1>
+              <p class="tagline">AI-Powered Copyright Infringement Detection</p>
+            </div>
+          </div>
+          <div class="header-stats">
+            <div class="stat-item">
+              <span class="stat-number" id="videosScanned">0</span>
+              <span class="stat-label">Videos Scanned</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-number" id="infringementsFound">0</span>
+              <span class="stat-label">Infringements Found</span>
+            </div>
+          </div>
+        </div>
       </header>
 
       <!-- Search Section -->
-      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-2xl font-semibold mb-4">Search Videos</h2>
-
-        <!-- Tab Navigation -->
-        <div class="border-b border-gray-200 mb-4">
-          <nav class="flex space-x-8">
-            <button
-              id="generalTab"
-              class="tab-button active py-2 px-1 border-b-2 font-medium text-sm"
-            >
+      <div class="search-section glass-card fade-in-delay-1">
+        <div class="section-header">
+          <h2 class="section-title">
+            <i class="fas fa-search"></i>
+            Search Configuration
+          </h2>
+          <div class="search-mode-toggle">
+            <button class="mode-btn active" data-mode="general">
+              <i class="fas fa-globe"></i>
               General Search
             </button>
-            <button
-              id="gameTab"
-              class="tab-button py-2 px-1 border-b-2 font-medium text-sm"
-            >
-              Game Cheats Search
+            <button class="mode-btn" data-mode="game">
+              <i class="fas fa-gamepad"></i>
+              Game Cheats
             </button>
-          </nav>
+          </div>
         </div>
 
-        <!-- General Search Tab -->
-        <div id="generalSearch" class="tab-content">
-          <div class="grid md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Keywords (Optional)
+        <!-- General Search Mode -->
+        <div id="generalSearchMode" class="search-mode active">
+          <div class="input-grid">
+            <div class="input-group">
+              <label class="input-label">
+                <i class="fas fa-key"></i>
+                Keywords
               </label>
               <input
                 type="text"
                 id="keywords"
-                placeholder="e.g., full movie, copyrighted content"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="glass-input"
+                placeholder="Enter search keywords..."
               />
+              <span class="input-hint">e.g., fortnite cheat, valorant hack</span>
             </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+            <div class="input-group">
+              <label class="input-label">
+                <i class="fas fa-folder"></i>
                 Category
               </label>
-              <select
-                id="category"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select Category</option>
-                <option value="default">All Categories</option>
-                <option value="music">Music</option>
-                <option value="gaming">Gaming</option>
-                <option value="movies">Movies</option>
-              </select>
+              <div class="custom-select">
+                <select id="category" class="glass-input">
+                  <option value="">All Categories</option>
+                  <option value="gaming">Gaming</option>
+                  <option value="music">Music</option>
+                  <option value="movies">Movies</option>
+                  <option value="software">Software</option>
+                </select>
+                <i class="fas fa-chevron-down select-arrow"></i>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Game Search Tab -->
-        <div id="gameSearch" class="tab-content hidden">
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+        <!-- Game Search Mode -->
+        <div id="gameSearchMode" class="search-mode">
+          <div class="input-group full-width">
+            <label class="input-label">
+              <i class="fas fa-gamepad"></i>
               Game Name
             </label>
             <input
               type="text"
               id="gameName"
-              placeholder="e.g., fortnite, valorant, warzone"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="glass-input"
+              placeholder="Enter game name..."
             />
-            <p class="text-sm text-gray-500 mt-1">
-              This will search for cheat-related videos using AI-powered keyword
-              research
-            </p>
+            <span class="input-hint">AI will find cheat-related videos using keyword research</span>
           </div>
         </div>
 
         <!-- Channel Whitelist -->
-        <div class="mt-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Channel Whitelist (comma or newline separated)
+        <div class="whitelist-section">
+          <label class="input-label">
+            <i class="fas fa-user-shield"></i>
+            Channel Whitelist
           </label>
           <textarea
             id="channelWhitelist"
-            rows="2"
-            placeholder='e.g., Wiffbiong, "Channel: SomeName"'
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="glass-input whitelist-input"
+            placeholder="Enter channel names to exclude (one per line)"
+            rows="3"
           ></textarea>
-          <p class="text-sm text-gray-500 mt-1">
-            Videos from these channels will be skipped from analysis.
-          </p>
         </div>
 
-        <div class="flex items-center gap-4">
-          <button
-            id="analyzeBtn"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
-          >
-            Analyze Videos
+        <!-- Action Buttons -->
+        <div class="action-section">
+          <button id="analyzeBtn" class="primary-btn">
+            <i class="fas fa-play"></i>
+            <span>Start Analysis</span>
           </button>
-
-          <div id="loadingIndicator" class="hidden flex items-center gap-2">
-            <div
-              class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"
-            ></div>
-            <span class="text-gray-600">Analyzing videos...</span>
+          <div class="analysis-info">
+            <i class="fas fa-info-circle"></i>
+            <span>AI will analyze up to 50 videos</span>
           </div>
         </div>
       </div>
 
-      <!-- Progress Bar -->
-      <div
-        id="progressSection"
-        class="hidden bg-white rounded-lg shadow-md p-6 mb-8"
-      >
-        <h3 class="text-lg font-semibold mb-4">Analysis Progress</h3>
-        <div class="mb-4">
-          <div class="flex justify-between text-sm text-gray-600 mb-1">
+      <!-- Progress Section -->
+      <div id="progressSection" class="progress-section glass-card hidden fade-in">
+        <h3 class="progress-title">
+          <i class="fas fa-chart-line"></i>
+          Analysis Progress
+        </h3>
+        <div class="progress-container">
+          <div class="progress-info">
             <span id="progressText">Initializing...</span>
             <span id="progressPercentage">0%</span>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-3">
-            <div
-              id="progressBar"
-              class="bg-blue-600 h-3 rounded-full transition-all duration-300"
-              style="width: 0%"
-            ></div>
+          <div class="progress-bar-bg">
+            <div id="progressBar" class="progress-bar"></div>
           </div>
         </div>
-        <div id="progressDetails" class="text-sm text-gray-500">
-          <p id="currentStep">Preparing analysis...</p>
-          <p id="videoCount" class="hidden">
-            Videos analyzed: <span id="analyzedCount">0</span> /
-            <span id="totalCount">0</span>
-          </p>
-          <p id="currentVideo" class="hidden mt-1 text-xs truncate">
-            Analyzing: <span id="videoTitle"></span>
-          </p>
-        </div>
-      </div>
-
-      <!-- Summary Report -->
-      <div
-        id="summaryReport"
-        class="hidden bg-white rounded-lg shadow-md p-6 mb-8"
-      >
-        <h2 class="text-2xl font-semibold mb-4">Analysis Summary</h2>
-        <div class="grid md:grid-cols-4 gap-4">
-          <div class="bg-gray-50 p-4 rounded">
-            <p class="text-sm text-gray-600">Total Analyzed</p>
-            <p id="totalAnalyzed" class="text-2xl font-bold text-gray-900">0</p>
+        <div class="progress-details">
+          <div id="currentStep" class="detail-item">
+            <i class="fas fa-tasks"></i>
+            <span>Preparing analysis...</span>
           </div>
-          <div class="bg-red-50 p-4 rounded">
-            <p class="text-sm text-gray-600">Likely Infringing</p>
-            <p id="likelyInfringing" class="text-2xl font-bold text-red-600">
-              0
-            </p>
+          <div id="videoCount" class="detail-item hidden">
+            <i class="fas fa-video"></i>
+            <span>Analyzed: <strong id="analyzedCount">0</strong> / <strong id="totalCount">0</strong></span>
           </div>
-          <div class="bg-orange-50 p-4 rounded">
-            <p class="text-sm text-gray-600">High Confidence</p>
-            <p id="highConfidence" class="text-2xl font-bold text-orange-600">
-              0
-            </p>
-          </div>
-          <div class="bg-blue-50 p-4 rounded">
-            <p class="text-sm text-gray-600">Infringement Rate</p>
-            <p id="infringementRate" class="text-2xl font-bold text-blue-600">
-              0%
-            </p>
+          <div id="currentVideo" class="detail-item hidden">
+            <i class="fas fa-play-circle"></i>
+            <span class="current-video-title" id="videoTitle">...</span>
           </div>
         </div>
       </div>
 
-      <!-- Results Section -->
-      <div id="resultsSection" class="hidden">
-        <h2 class="text-2xl font-semibold mb-4">Detected Infringing Videos</h2>
-        <div id="resultsContainer" class="space-y-4">
+      <!-- Results Summary -->
+      <div id="summarySection" class="summary-section hidden fade-in">
+        <h3 class="summary-title">
+          <i class="fas fa-chart-pie"></i>
+          Analysis Summary
+        </h3>
+        <div class="summary-grid">
+          <div class="summary-card total">
+            <div class="summary-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-value" id="totalAnalyzed">0</span>
+              <span class="summary-label">Total Analyzed</span>
+            </div>
+          </div>
+          <div class="summary-card danger">
+            <div class="summary-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-value" id="likelyInfringing">0</span>
+              <span class="summary-label">Likely Infringing</span>
+            </div>
+          </div>
+          <div class="summary-card warning">
+            <div class="summary-icon">
+              <i class="fas fa-shield-halved"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-value" id="highConfidence">0</span>
+              <span class="summary-label">High Confidence</span>
+            </div>
+          </div>
+          <div class="summary-card info">
+            <div class="summary-icon">
+              <i class="fas fa-percentage"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-value" id="infringementRate">0%</span>
+              <span class="summary-label">Infringement Rate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results List -->
+      <div id="resultsSection" class="results-section hidden fade-in">
+        <div class="results-header">
+          <h3 class="results-title">
+            <i class="fas fa-flag"></i>
+            Detected Infringing Videos
+          </h3>
+          <div class="results-actions">
+            <button class="action-btn" id="exportCsvBtn" title="Export as CSV">
+              <i class="fas fa-file-csv"></i>
+            </button>
+            <button class="action-btn" id="copyLinksBtn" title="Copy all links">
+              <i class="fas fa-link"></i>
+            </button>
+          </div>
+        </div>
+        <div id="resultsContainer" class="results-container">
           <!-- Results will be inserted here -->
         </div>
       </div>
 
       <!-- Error Message -->
-      <div
-        id="errorMessage"
-        class="hidden bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4"
-      >
-        <p class="font-medium">Error</p>
-        <p id="errorText" class="text-sm"></p>
+      <div id="errorMessage" class="error-message glass-card hidden">
+        <div class="error-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="error-content">
+          <p class="error-title">Error Occurred</p>
+          <p id="errorText" class="error-text"></p>
+        </div>
+        <button class="error-close" onclick="document.getElementById('errorMessage').classList.add('hidden')">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <p class="loading-text">Analyzing videos...</p>
     </div>
 
     <script src="app.js"></script>
