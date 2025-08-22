@@ -375,7 +375,7 @@ function createVideoCard(analysis, number) {
     if (!seconds) return "N/A";
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   // Format view count
@@ -393,7 +393,7 @@ function createVideoCard(analysis, number) {
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 1) return "Today";
     if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays} days ago`;
@@ -403,10 +403,13 @@ function createVideoCard(analysis, number) {
   };
 
   // Extract description if available
-  const description = analysis.description ? 
-    `<div class="result-description">
-      <p>${escapeHtml(analysis.description).substring(0, 150)}${analysis.description.length > 150 ? '...' : ''}</p>
-    </div>` : '';
+  const description = analysis.description
+    ? `<div class="result-description">
+      <p>${escapeHtml(analysis.description).substring(0, 150)}${
+        analysis.description.length > 150 ? "..." : ""
+      }</p>
+    </div>`
+    : "";
 
   card.innerHTML = `
     <div class="result-header">
@@ -427,7 +430,7 @@ function createVideoCard(analysis, number) {
     <div class="result-meta">
       <div class="meta-item">
         <i class="fas fa-tag"></i>
-        ${capitalizeFirst(analysis.copyrightType || 'content')}
+        ${capitalizeFirst(analysis.copyrightType || "content")}
       </div>
       <div class="meta-item">
         <i class="fas fa-clock"></i>
@@ -448,13 +451,16 @@ function createVideoCard(analysis, number) {
     <div class="result-reasons">
       <div class="reasons-label">Reasons for Detection</div>
       <div class="reasons-list">
-        ${analysis.reasons && analysis.reasons.length > 0 ? 
-          analysis.reasons
-            .map(
-              (reason) => `<span class="reason-tag">${escapeHtml(reason)}</span>`
-            )
-            .join("") : 
-          '<span class="reason-tag">Copyright infringement detected</span>'}
+        ${
+          analysis.reasons && analysis.reasons.length > 0
+            ? analysis.reasons
+                .map(
+                  (reason) =>
+                    `<span class="reason-tag">${escapeHtml(reason)}</span>`
+                )
+                .join("")
+            : '<span class="reason-tag">Copyright infringement detected</span>'
+        }
       </div>
     </div>
     
@@ -467,7 +473,9 @@ function createVideoCard(analysis, number) {
           ${analysis.fairUseFactors
             .map(
               (factor) =>
-                `<span class="reason-tag fair-use-tag">${escapeHtml(factor)}</span>`
+                `<span class="reason-tag fair-use-tag">${escapeHtml(
+                  factor
+                )}</span>`
             )
             .join("")}
         </div>
@@ -494,7 +502,9 @@ function createVideoCard(analysis, number) {
         <i class="fas fa-external-link-alt"></i>
         View on YouTube
       </a>
-      <button class="action-btn-small" onclick="copyVideoLink('${analysis.videoId}')" title="Copy link">
+      <button class="action-btn-small" onclick="copyVideoLink('${
+        analysis.videoId
+      }')" title="Copy link">
         <i class="fas fa-copy"></i>
       </button>
     </div>
@@ -703,13 +713,13 @@ function copyVideoLink(videoId) {
   const link = `https://www.youtube.com/watch?v=${videoId}`;
   navigator.clipboard.writeText(link).then(() => {
     // Show a brief success message
-    const btn = event.target.closest('button');
+    const btn = event.target.closest("button");
     const originalHTML = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check"></i>';
-    btn.style.color = 'var(--accent-primary)';
+    btn.style.color = "var(--accent-primary)";
     setTimeout(() => {
       btn.innerHTML = originalHTML;
-      btn.style.color = '';
+      btn.style.color = "";
     }, 1500);
   });
 }
