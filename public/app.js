@@ -370,14 +370,27 @@ function createVideoCard(analysis, number) {
   const confidenceClass =
     analysis.confidenceScore >= 80 ? "confidence-high" : "confidence-medium";
 
+  // Defensive fallbacks to avoid empty cards if some fields are missing
+  const safeTitle =
+    analysis.videoTitle ||
+    analysis.title ||
+    (analysis.videoId ? `Video ${analysis.videoId}` : "Untitled video");
+  const safeChannel =
+    analysis.channelName || analysis.channel || analysis.author || "Unknown";
+  const safeReasons = Array.isArray(analysis.reasons) && analysis.reasons.length
+    ? analysis.reasons
+    : ["Heuristic match for cheat distribution indicators"];
+  const safeType = analysis.copyrightType || "other";
+  const safeDate = analysis.analysisTimestamp || new Date().toISOString();
+
   card.innerHTML = `
     <div class="result-header">
       <div class="result-info">
         <div class="result-number">RESULT #${number}</div>
-        <h3 class="result-title">${escapeHtml(analysis.videoTitle)}</h3>
+        <h3 class="result-title">${escapeHtml(safeTitle)}</h3>
         <div class="result-channel">
           <i class="fas fa-user"></i>
-          ${escapeHtml(analysis.channelName)}
+          ${escapeHtml(safeChannel)}
         </div>
       </div>
       <div class="confidence-badge ${confidenceClass}">
@@ -389,18 +402,18 @@ function createVideoCard(analysis, number) {
     <div class="result-meta">
       <div class="meta-item">
         <i class="fas fa-tag"></i>
-        ${capitalizeFirst(analysis.copyrightType)}
+        ${capitalizeFirst(safeType)}
       </div>
       <div class="meta-item">
         <i class="fas fa-calendar"></i>
-        ${new Date(analysis.analysisTimestamp).toLocaleDateString()}
+        ${new Date(safeDate).toLocaleDateString()}
       </div>
     </div>
     
     <div class="result-reasons">
       <div class="reasons-label">Reasons for Detection</div>
       <div class="reasons-list">
-        ${analysis.reasons
+        ${safeReasons
           .map(
             (reason) => `<span class="reason-tag">${escapeHtml(reason)}</span>`
           )
