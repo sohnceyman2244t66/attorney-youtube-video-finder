@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import crypto from "crypto";
+import cookieParser from "cookie-parser";
 import { config } from "./config.js";
 import youtubeService from "./services/youtubeService.js";
 import openaiService from "./services/openaiService.js";
@@ -12,7 +14,107 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+
+// In-memory rate limits (simple token bucket per IP and per route group)
+const rateBuckets = new Map();
+function rateLimit(key, max, windowMs) {
+  if (!config.rateLimit.enable) return true;
+  const now = Date.now();
+  const bucket = rateBuckets.get(key) || { count: 0, resetAt: now + windowMs };
+  if (now > bucket.resetAt) {
+    bucket.count = 0;
+    bucket.resetAt = now + windowMs;
+  }
+  bucket.count += 1;
+  rateBuckets.set(key, bucket);
+  return bucket.count <= max;
+}
+
+// Auth helpers
+const AUTH_COOKIE = config.access.cookieName;
+function signToken(payload) {
+  const secret = crypto
+    .createHash("sha256")
+    .update(String(config.access.key))
+    .digest();
+  const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const sig = crypto
+    .createHmac("sha256", secret)
+    .update(data)
+    .digest("base64url");
+  return `${data}.${sig}`;
+}
+
+function verifyToken(token) {
+  if (!token || typeof token !== "string" || !token.includes(".")) return null;
+  const [data, sig] = token.split(".");
+  const expected = crypto
+    .createHmac("sha256", crypto.createHash("sha256").update(String(config.access.key)).digest())
+    .update(data)
+    .digest("base64url");
+  if (sig !== expected) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(data, "base64url").toString());
+    if (payload.exp && Date.now() > payload.exp) return null;
+    return payload;
+  } catch (_) {
+    return null;
+  }
+}
+
+function requireAuth(req, res, next) {
+  const token = req.cookies[AUTH_COOKIE];
+  const payload = verifyToken(token);
+  if (!payload) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  req.user = { ok: true };
+  return next();
+}
+
+// Public static: only serve login page publicly; protect rest via middleware below
+app.get(["/", "/index.html"], (req, res, next) => {
+  // Gate main UI behind auth; redirect to login if missing
+  const token = req.cookies[AUTH_COOKIE];
+  if (!verifyToken(token)) {
+    return res.redirect(302, "/login.html");
+  }
+  next();
+});
 app.use(express.static("public"));
+
+// Login endpoint (rate-limited)
+app.post("/api/login", (req, res) => {
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
+  const ok = rateLimit(
+    `login:${ip}`,
+    config.rateLimit.loginMaxPerWindow,
+    config.rateLimit.loginWindowMs
+  );
+  if (!ok) return res.status(429).json({ error: "Too many login attempts" });
+
+  const { key } = req.body || {};
+  if (!key || String(key) !== String(config.access.key)) {
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
+
+  const ttlMs = (config.access.tokenTtlSeconds || 86400) * 1000;
+  const token = signToken({ exp: Date.now() + ttlMs });
+  res.cookie(AUTH_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: ttlMs,
+  });
+  return res.json({ ok: true });
+});
+
+// Logout
+app.post("/api/logout", (req, res) => {
+  res.clearCookie(AUTH_COOKIE);
+  res.json({ ok: true });
+});
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -27,7 +129,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // SSE endpoint for progress updates
-app.get("/api/analyze/progress", (req, res) => {
+app.get("/api/analyze/progress", requireAuth, (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
@@ -58,7 +160,15 @@ function sendProgressUpdate(app, data) {
 }
 
 // Search and analyze videos endpoint
-app.post("/api/analyze", async (req, res) => {
+app.post("/api/analyze", requireAuth, async (req, res) => {
+  // rate limit per IP for analyze
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
+  const ok = rateLimit(
+    `analyze:${ip}`,
+    config.rateLimit.analyzeMaxPerWindow,
+    config.rateLimit.windowMs
+  );
+  if (!ok) return res.status(429).json({ error: "Rate limit exceeded" });
   console.log("=== /api/analyze endpoint called ===");
   console.log("Request body:", req.body);
 
@@ -177,7 +287,14 @@ app.post("/api/analyze", async (req, res) => {
 });
 
 // Search game cheats with keyword research
-app.post("/api/analyze-game", async (req, res) => {
+app.post("/api/analyze-game", requireAuth, async (req, res) => {
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
+  const ok = rateLimit(
+    `analyze:${ip}`,
+    config.rateLimit.analyzeMaxPerWindow,
+    config.rateLimit.windowMs
+  );
+  if (!ok) return res.status(429).json({ error: "Rate limit exceeded" });
   console.log("=== /api/analyze-game endpoint called ===");
   console.log("Request body:", req.body);
 
@@ -353,7 +470,7 @@ app.post("/api/analyze-game", async (req, res) => {
 });
 
 // Get trending categories
-app.get("/api/categories", (req, res) => {
+app.get("/api/categories", requireAuth, (req, res) => {
   res.json({
     categories: [
       { value: "default", label: "All Categories" },
@@ -365,7 +482,7 @@ app.get("/api/categories", (req, res) => {
 });
 
 // Get video details endpoint
-app.get("/api/video/:videoId", async (req, res) => {
+app.get("/api/video/:videoId", requireAuth, async (req, res) => {
   try {
     const { videoId } = req.params;
     const video = await youtubeService.getVideoDetails(videoId);

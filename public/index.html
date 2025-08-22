@@ -3,13 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Attorney YouTube Video Finder - AI-Powered Copyright Detection</title>
+    <title>
+      Attorney YouTube Video Finder - AI-Powered Copyright Detection
+    </title>
     <!-- Modern Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -82,7 +90,9 @@
                 class="glass-input"
                 placeholder="Enter search keywords..."
               />
-              <span class="input-hint">e.g., fortnite cheat, valorant hack</span>
+              <span class="input-hint"
+                >e.g., fortnite cheat, valorant hack</span
+              >
             </div>
             <div class="input-group">
               <label class="input-label">
@@ -116,7 +126,9 @@
               class="glass-input"
               placeholder="Enter game name..."
             />
-            <span class="input-hint">AI will find cheat-related videos using keyword research</span>
+            <span class="input-hint"
+              >AI will find cheat-related videos using keyword research</span
+            >
           </div>
         </div>
 
@@ -148,7 +160,10 @@
       </div>
 
       <!-- Progress Section -->
-      <div id="progressSection" class="progress-section glass-card hidden fade-in">
+      <div
+        id="progressSection"
+        class="progress-section glass-card hidden fade-in"
+      >
         <h3 class="progress-title">
           <i class="fas fa-chart-line"></i>
           Analysis Progress
@@ -169,7 +184,10 @@
           </div>
           <div id="videoCount" class="detail-item hidden">
             <i class="fas fa-video"></i>
-            <span>Analyzed: <strong id="analyzedCount">0</strong> / <strong id="totalCount">0</strong></span>
+            <span
+              >Analyzed: <strong id="analyzedCount">0</strong> /
+              <strong id="totalCount">0</strong></span
+            >
           </div>
           <div id="currentVideo" class="detail-item hidden">
             <i class="fas fa-play-circle"></i>
@@ -254,7 +272,10 @@
           <p class="error-title">Error Occurred</p>
           <p id="errorText" class="error-text"></p>
         </div>
-        <button class="error-close" onclick="document.getElementById('errorMessage').classList.add('hidden')">
+        <button
+          class="error-close"
+          onclick="document.getElementById('errorMessage').classList.add('hidden')"
+        >
           <i class="fas fa-times"></i>
         </button>
       </div>

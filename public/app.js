@@ -14,28 +14,28 @@ const errorMessage = document.getElementById("errorMessage");
 const errorText = document.getElementById("errorText");
 
 // Mode switching
-const modeBtns = document.querySelectorAll('.mode-btn');
-const searchModes = document.querySelectorAll('.search-mode');
+const modeBtns = document.querySelectorAll(".mode-btn");
+const searchModes = document.querySelectorAll(".search-mode");
 
-let currentMode = 'general';
+let currentMode = "general";
 
 // Event listeners
 analyzeBtn.addEventListener("click", performAnalysis);
 
 // Mode switching
-modeBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
+modeBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
     const mode = btn.dataset.mode;
     currentMode = mode;
-    
+
     // Update buttons
-    modeBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    
+    modeBtns.forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+
     // Update search modes
-    searchModes.forEach(m => m.classList.remove('active'));
-    document.getElementById(`${mode}SearchMode`).classList.add('active');
-    
+    searchModes.forEach((m) => m.classList.remove("active"));
+    document.getElementById(`${mode}SearchMode`).classList.add("active");
+
     // Clear inputs when switching
     clearInputs();
     hideError();
@@ -43,9 +43,9 @@ modeBtns.forEach(btn => {
 });
 
 function clearInputs() {
-  keywordsInput.value = '';
-  categorySelect.value = '';
-  gameNameInput.value = '';
+  keywordsInput.value = "";
+  categorySelect.value = "";
+  gameNameInput.value = "";
 }
 
 // Helper function to show/hide error
@@ -64,8 +64,10 @@ let totalVideosScanned = 0;
 let totalInfringementsFound = 0;
 
 function updateHeaderStats() {
-  document.getElementById('videosScanned').textContent = totalVideosScanned.toLocaleString();
-  document.getElementById('infringementsFound').textContent = totalInfringementsFound.toLocaleString();
+  document.getElementById("videosScanned").textContent =
+    totalVideosScanned.toLocaleString();
+  document.getElementById("infringementsFound").textContent =
+    totalInfringementsFound.toLocaleString();
 }
 
 // Progress tracking helper
@@ -139,7 +141,7 @@ function initProgressTracking() {
 
 // Main analysis function
 async function performAnalysis() {
-  if (currentMode === 'game') {
+  if (currentMode === "game") {
     await performGameAnalysis();
   } else {
     await performGeneralAnalysis();
@@ -165,7 +167,8 @@ async function performGeneralAnalysis() {
 
   // Show loading
   analyzeBtn.disabled = true;
-  analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
+  analyzeBtn.innerHTML =
+    '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
   loadingOverlay.classList.remove("hidden");
 
   // Start progress tracking
@@ -202,7 +205,8 @@ async function performGeneralAnalysis() {
     showError(error.message || "Failed to analyze videos. Please try again.");
   } finally {
     analyzeBtn.disabled = false;
-    analyzeBtn.innerHTML = '<i class="fas fa-play"></i><span>Start Analysis</span>';
+    analyzeBtn.innerHTML =
+      '<i class="fas fa-play"></i><span>Start Analysis</span>';
     loadingOverlay.classList.add("hidden");
     eventSource.close();
     // Hide progress after a delay
@@ -230,7 +234,8 @@ async function performGameAnalysis() {
 
   // Show loading
   analyzeBtn.disabled = true;
-  analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
+  analyzeBtn.innerHTML =
+    '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
   loadingOverlay.classList.remove("hidden");
 
   // Start progress tracking
@@ -267,7 +272,8 @@ async function performGameAnalysis() {
     );
   } finally {
     analyzeBtn.disabled = false;
-    analyzeBtn.innerHTML = '<i class="fas fa-play"></i><span>Start Analysis</span>';
+    analyzeBtn.innerHTML =
+      '<i class="fas fa-play"></i><span>Start Analysis</span>';
     loadingOverlay.classList.add("hidden");
     eventSource.close();
     // Hide progress after a delay
@@ -337,10 +343,14 @@ function displayResults(data) {
 
 // Display summary report
 function displaySummaryReport(report) {
-  document.getElementById("totalAnalyzed").textContent = report.summary.totalAnalyzed;
-  document.getElementById("likelyInfringing").textContent = report.summary.likelyInfringing;
-  document.getElementById("highConfidence").textContent = report.summary.highConfidence;
-  document.getElementById("infringementRate").textContent = report.summary.percentageInfringing + "%";
+  document.getElementById("totalAnalyzed").textContent =
+    report.summary.totalAnalyzed;
+  document.getElementById("likelyInfringing").textContent =
+    report.summary.likelyInfringing;
+  document.getElementById("highConfidence").textContent =
+    report.summary.highConfidence;
+  document.getElementById("infringementRate").textContent =
+    report.summary.percentageInfringing + "%";
 
   summarySection.classList.remove("hidden");
   summarySection.classList.add("fade-in");
@@ -351,7 +361,8 @@ function createVideoCard(analysis, number) {
   const card = document.createElement("div");
   card.className = "result-card fade-in";
 
-  const confidenceClass = analysis.confidenceScore >= 80 ? "confidence-high" : "confidence-medium";
+  const confidenceClass =
+    analysis.confidenceScore >= 80 ? "confidence-high" : "confidence-medium";
 
   card.innerHTML = `
     <div class="result-header">
@@ -383,18 +394,31 @@ function createVideoCard(analysis, number) {
     <div class="result-reasons">
       <div class="reasons-label">Reasons for Detection</div>
       <div class="reasons-list">
-        ${analysis.reasons.map(reason => `<span class="reason-tag">${escapeHtml(reason)}</span>`).join("")}
+        ${analysis.reasons
+          .map(
+            (reason) => `<span class="reason-tag">${escapeHtml(reason)}</span>`
+          )
+          .join("")}
       </div>
     </div>
     
-    ${analysis.fairUseFactors && analysis.fairUseFactors.length > 0 ? `
+    ${
+      analysis.fairUseFactors && analysis.fairUseFactors.length > 0
+        ? `
       <div class="result-reasons">
         <div class="reasons-label">Potential Fair Use Factors</div>
         <div class="reasons-list">
-          ${analysis.fairUseFactors.map(factor => `<span class="reason-tag">${escapeHtml(factor)}</span>`).join("")}
+          ${analysis.fairUseFactors
+            .map(
+              (factor) =>
+                `<span class="reason-tag">${escapeHtml(factor)}</span>`
+            )
+            .join("")}
         </div>
       </div>
-    ` : ""}
+    `
+        : ""
+    }
     
     <div class="result-actions">
       <a href="https://www.youtube.com/watch?v=${analysis.videoId}" 
@@ -429,9 +453,13 @@ function displayGameResults(data) {
     summary: {
       totalAnalyzed: totalVideosAnalyzed,
       likelyInfringing: strikableVideosCount,
-      highConfidence: strikableVideos.filter(v => v.confidenceScore >= 80).length,
-      percentageInfringing: ((strikableVideosCount / totalVideosAnalyzed) * 100).toFixed(1)
-    }
+      highConfidence: strikableVideos.filter((v) => v.confidenceScore >= 80)
+        .length,
+      percentageInfringing: (
+        (strikableVideosCount / totalVideosAnalyzed) *
+        100
+      ).toFixed(1),
+    },
   };
   displaySummaryReport(summaryData);
 
@@ -447,11 +475,18 @@ function displayGameResults(data) {
       <span class="px-3 py-1 rounded-md text-sm font-medium" style="background: var(--accent-gradient); color: white;">
         ${escapeHtml(keywords.mainKeyword)}
       </span>
-      ${keywords.topKeywords.slice(0, 5).map(k => `
+      ${keywords.topKeywords
+        .slice(0, 5)
+        .map(
+          (k) => `
         <span class="px-3 py-1 rounded-md text-sm" style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
-          ${escapeHtml(k.keyword)} <span class="opacity-60">(${k.monthlySearches.toLocaleString()}/mo)</span>
+          ${escapeHtml(
+            k.keyword
+          )} <span class="opacity-60">(${k.monthlySearches.toLocaleString()}/mo)</span>
         </span>
-      `).join("")}
+      `
+        )
+        .join("")}
     </div>
   `;
   summarySection.appendChild(keywordInfo);
@@ -490,14 +525,14 @@ function displayGameResults(data) {
     // Display each video
     strikableVideos.forEach((video, index) => {
       const analysis = {
-        videoId: video.url.split('v=')[1],
+        videoId: video.url.split("v=")[1],
         videoTitle: video.title,
         channelName: video.channel,
         isLikelyInfringing: true,
         confidenceScore: video.confidenceScore,
         reasons: video.reasons || ['Found with: "' + video.keyword + '"'],
-        copyrightType: 'game',
-        analysisTimestamp: new Date().toISOString()
+        copyrightType: "game",
+        analysisTimestamp: new Date().toISOString(),
       };
       resultsContainer.appendChild(createVideoCard(analysis, index + 1));
     });
@@ -534,7 +569,11 @@ function copyAllLinks() {
 
 // Export results as CSV
 function exportToCSV() {
-  if (!window.currentStrikableVideos || window.currentStrikableVideos.length === 0) return;
+  if (
+    !window.currentStrikableVideos ||
+    window.currentStrikableVideos.length === 0
+  )
+    return;
 
   const csv = [
     ["Title", "Channel", "URL", "Confidence", "Keyword", "Reasons"],
@@ -554,7 +593,9 @@ function exportToCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${window.currentGameName}_strikable_videos_${new Date().toISOString().split("T")[0]}.csv`;
+  a.download = `${window.currentGameName}_strikable_videos_${
+    new Date().toISOString().split("T")[0]
+  }.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -572,6 +613,6 @@ function capitalizeFirst(str) {
 }
 
 // Initialize on load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   updateHeaderStats();
 });
