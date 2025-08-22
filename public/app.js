@@ -370,36 +370,55 @@ function createVideoCard(analysis, number) {
   const confidenceClass =
     analysis.confidenceScore >= 80 ? "confidence-high" : "confidence-medium";
 
-  // Format video duration
-  const formatDuration = (seconds) => {
-    if (!seconds) return "N/A";
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+  // Extract video metadata with fallbacks
+  const getDuration = () => {
+    const duration = analysis.duration || analysis.lengthSeconds;
+    if (!duration || duration === 0) return "N/A";
+    const mins = Math.floor(duration / 60);
+    const secs = duration % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Format view count
-  const formatViews = (views) => {
-    if (!views) return "N/A";
+  const getViewCount = () => {
+    const views = analysis.viewCount || analysis.views;
+    if (!views || views === 0) return "N/A";
     if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
     if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
     return views.toString();
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return new Date().toLocaleDateString();
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 1) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    return date.toLocaleDateString();
+  const getPublishDate = () => {
+    const publishDate = analysis.publishedAt || analysis.publishedText || analysis.uploadedDate;
+    if (!publishDate) return "Unknown date";
+    
+    // If it's already a relative time string, use it
+    if (typeof publishDate === 'string' && (
+      publishDate.includes('ago') || 
+      publishDate.includes('day') || 
+      publishDate.includes('week') || 
+      publishDate.includes('month') || 
+      publishDate.includes('year')
+    )) {
+      return publishDate;
+    }
+    
+    try {
+      const date = new Date(publishDate);
+      if (isNaN(date.getTime())) return "Unknown date";
+      
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 1) return "Today";
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+      return date.toLocaleDateString();
+    } catch (e) {
+      return "Unknown date";
+    }
   };
 
   // Extract description if available
@@ -434,15 +453,15 @@ function createVideoCard(analysis, number) {
       </div>
       <div class="meta-item">
         <i class="fas fa-clock"></i>
-        ${formatDuration(analysis.duration)}
+        ${getDuration()}
       </div>
       <div class="meta-item">
         <i class="fas fa-eye"></i>
-        ${formatViews(analysis.viewCount)} views
+        ${getViewCount()} views
       </div>
       <div class="meta-item">
         <i class="fas fa-calendar"></i>
-        ${formatDate(analysis.publishedAt || analysis.analysisTimestamp)}
+        ${getPublishDate()}
       </div>
     </div>
 
@@ -587,20 +606,6 @@ function displayGameResults(data) {
       </div>
     `;
   } else {
-    // Add export buttons
-    const exportActions = document.createElement("div");
-    exportActions.className = "results-actions mb-4";
-    exportActions.innerHTML = `
-      <button class="action-btn" onclick="exportToCSV()" title="Export as CSV">
-        <i class="fas fa-file-csv"></i>
-        Export CSV
-      </button>
-      <button class="action-btn" onclick="copyAllLinks()" title="Copy all links">
-        <i class="fas fa-link"></i>
-        Copy All Links
-      </button>
-    `;
-    resultsSection.insertBefore(exportActions, resultsContainer);
 
     // Display each video
     strikableVideos.forEach((video, index) => {
@@ -613,6 +618,11 @@ function displayGameResults(data) {
         reasons: video.reasons || ['Found with: "' + video.keyword + '"'],
         copyrightType: "game",
         analysisTimestamp: new Date().toISOString(),
+        duration: video.duration || video.lengthSeconds,
+        viewCount: video.viewCount || video.views,
+        publishedAt: video.publishedAt || video.publishDate,
+        description: video.description,
+        keyword: video.keyword
       };
       resultsContainer.appendChild(createVideoCard(analysis, index + 1));
     });
