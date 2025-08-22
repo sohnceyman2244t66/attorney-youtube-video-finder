@@ -10,6 +10,7 @@ const loadingOverlay = document.getElementById("loadingOverlay");
 const summarySection = document.getElementById("summarySection");
 const resultsSection = document.getElementById("resultsSection");
 const resultsContainer = document.getElementById("resultsContainer");
+const copyStrike10Btn = document.getElementById("copyStrike10Btn");
 const errorMessage = document.getElementById("errorMessage");
 const errorText = document.getElementById("errorText");
 
@@ -21,6 +22,9 @@ let currentMode = "general";
 
 // Event listeners
 analyzeBtn.addEventListener("click", performAnalysis);
+if (copyStrike10Btn) {
+  copyStrike10Btn.addEventListener("click", copyFirst10Links);
+}
 
 // Mode switching
 modeBtns.forEach((btn) => {
@@ -314,6 +318,8 @@ function displayResults(data) {
 
   // Filter and display only infringing videos
   const infringingVideos = analyses.filter((a) => a.isLikelyInfringing);
+  // Keep for copy-first-10 utility
+  window.currentInfringingAnalyses = infringingVideos;
   totalInfringementsFound += infringingVideos.length;
   updateHeaderStats();
 
@@ -557,6 +563,22 @@ function copyToClipboard(text) {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
   });
+}
+
+// Copy first 10 links from the infringing list
+function copyFirst10Links() {
+  const list = Array.isArray(window.currentInfringingAnalyses)
+    ? window.currentInfringingAnalyses
+    : [];
+  if (list.length === 0) {
+    showError("No infringing videos available to copy");
+    return;
+  }
+  const first10 = list.slice(0, 10);
+  const links = first10
+    .map((a) => `https://www.youtube.com/watch?v=${a.videoId}`)
+    .join("\n");
+  copyToClipboard(links);
 }
 
 // Copy all links to clipboard

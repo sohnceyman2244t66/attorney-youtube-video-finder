@@ -28,10 +28,8 @@ export const config = {
   rateLimit: {
     enable: process.env.RATE_LIMIT_DISABLED !== "1",
     windowMs:
-      Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || "60000", 10) ||
-      60000, // 1 min
-    maxPerWindow:
-      Number.parseInt(process.env.RATE_LIMIT_MAX || "60", 10) || 60,
+      Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || "60000", 10) || 60000, // 1 min
+    maxPerWindow: Number.parseInt(process.env.RATE_LIMIT_MAX || "60", 10) || 60,
     loginWindowMs:
       Number.parseInt(process.env.RATE_LIMIT_LOGIN_WINDOW_MS || "300000", 10) ||
       300000, // 5 min

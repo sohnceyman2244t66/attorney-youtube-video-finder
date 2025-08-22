@@ -50,7 +50,10 @@ function verifyToken(token) {
   if (!token || typeof token !== "string" || !token.includes(".")) return null;
   const [data, sig] = token.split(".");
   const expected = crypto
-    .createHmac("sha256", crypto.createHash("sha256").update(String(config.access.key)).digest())
+    .createHmac(
+      "sha256",
+      crypto.createHash("sha256").update(String(config.access.key)).digest()
+    )
     .update(data)
     .digest("base64url");
   if (sig !== expected) return null;
@@ -86,7 +89,10 @@ app.use(express.static("public"));
 
 // Login endpoint (rate-limited)
 app.post("/api/login", (req, res) => {
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    "unknown";
   const ok = rateLimit(
     `login:${ip}`,
     config.rateLimit.loginMaxPerWindow,
@@ -162,7 +168,10 @@ function sendProgressUpdate(app, data) {
 // Search and analyze videos endpoint
 app.post("/api/analyze", requireAuth, async (req, res) => {
   // rate limit per IP for analyze
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    "unknown";
   const ok = rateLimit(
     `analyze:${ip}`,
     config.rateLimit.analyzeMaxPerWindow,
@@ -288,7 +297,10 @@ app.post("/api/analyze", requireAuth, async (req, res) => {
 
 // Search game cheats with keyword research
 app.post("/api/analyze-game", requireAuth, async (req, res) => {
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    "unknown";
   const ok = rateLimit(
     `analyze:${ip}`,
     config.rateLimit.analyzeMaxPerWindow,

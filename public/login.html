@@ -6,7 +6,10 @@
     <title>Sign in - Attorney Video Finder</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         --bg: #0a0a0f;
@@ -17,34 +20,94 @@
         --accent1: #5865f2;
         --accent2: #7289da;
       }
-      * { box-sizing: border-box; }
-      html, body { height: 100%; }
+      * {
+        box-sizing: border-box;
+      }
+      html,
       body {
-        margin: 0; font-family: "Inter", system-ui, sans-serif; color: var(--text);
-        background: radial-gradient(circle at 20% 50%, rgba(88,101,242,.15), transparent 40%),
-                    radial-gradient(circle at 80% 80%, rgba(114,137,218,.15), transparent 40%),
-                    #0a0a0f;
-        display: grid; place-items: center; padding: 24px;
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, sans-serif;
+        color: var(--text);
+        background: radial-gradient(
+            circle at 20% 50%,
+            rgba(88, 101, 242, 0.15),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(114, 137, 218, 0.15),
+            transparent 40%
+          ),
+          #0a0a0f;
+        display: grid;
+        place-items: center;
+        padding: 24px;
       }
       .card {
-        width: 100%; max-width: 420px; background: var(--glass); border: 1px solid var(--border);
-        border-radius: 16px; padding: 28px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-        box-shadow: 0 10px 40px rgba(0,0,0,.35);
+        width: 100%;
+        max-width: 420px;
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
       }
-      h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; }
-      p { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
-      label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+        font-weight: 600;
+      }
+      p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
       input {
-        width: 100%; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,.04);
-        border: 1px solid var(--border); color: var(--text); font-size: 14px; outline: none;
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 14px;
+        outline: none;
       }
-      input:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px rgba(88,101,242,.15); }
+      input:focus {
+        border-color: var(--accent1);
+        box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.15);
+      }
       button {
-        width: 100%; padding: 12px 14px; border: 0; border-radius: 10px; color: #fff; font-weight: 600; font-size: 14px;
-        background: linear-gradient(135deg, var(--accent1), var(--accent2)); cursor: pointer; transition: transform .15s ease;
+        width: 100%;
+        padding: 12px 14px;
+        border: 0;
+        border-radius: 10px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 14px;
+        background: linear-gradient(135deg, var(--accent1), var(--accent2));
+        cursor: pointer;
+        transition: transform 0.15s ease;
       }
-      button:hover { transform: translateY(-1px); }
-      .error { margin-top: 12px; color: #ff6b6b; font-size: 13px; display: none; }
+      button:hover {
+        transform: translateY(-1px);
+      }
+      .error {
+        margin-top: 12px;
+        color: #ff6b6b;
+        font-size: 13px;
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -53,37 +116,45 @@
       <p>Enter your access key to continue.</p>
       <form id="loginForm">
         <label for="key">Access Key</label>
-        <input id="key" name="key" type="password" placeholder="Enter access key" autocomplete="current-password" required />
-        <div style="height:12px"></div>
+        <input
+          id="key"
+          name="key"
+          type="password"
+          placeholder="Enter access key"
+          autocomplete="current-password"
+          required
+        />
+        <div style="height: 12px"></div>
         <button type="submit">Continue</button>
-        <div id="error" class="error">Invalid access key. Please try again.</div>
+        <div id="error" class="error">
+          Invalid access key. Please try again.
+        </div>
       </form>
     </div>
 
     <script>
-      const form = document.getElementById('loginForm');
-      const errorEl = document.getElementById('error');
-      form.addEventListener('submit', async (e) => {
+      const form = document.getElementById("loginForm");
+      const errorEl = document.getElementById("error");
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        errorEl.style.display = 'none';
-        const key = document.getElementById('key').value.trim();
+        errorEl.style.display = "none";
+        const key = document.getElementById("key").value.trim();
         try {
-          const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key })
+          const res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key }),
           });
           if (!res.ok) {
-            errorEl.style.display = 'block';
+            errorEl.style.display = "block";
             return;
           }
           // On success, go to app
-          window.location.href = '/';
+          window.location.href = "/";
         } catch (_) {
-          errorEl.style.display = 'block';
+          errorEl.style.display = "block";
         }
       });
     </script>
   </body>
-  </html>
-
+</html>
