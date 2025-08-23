@@ -15,6 +15,14 @@ class InstanceFinder {
         return this.cachedInstances;
       }
 
+      // Skip external API calls by default to prevent DNS/timeout issues
+      // Set SKIP_EXTERNAL_APIS=0 in .env to enable dynamic instance fetching
+      const skipExternal = process.env.SKIP_EXTERNAL_APIS !== "0";
+      if (skipExternal) {
+        console.log("Skipping external API calls, using fallback instances");
+        return this.getFallbackInstances();
+      }
+
       console.log("Fetching fresh instance list from api.invidious.io...");
       const response = await axios.get(this.instancesApiUrl, {
         timeout: 10000,
@@ -47,15 +55,19 @@ class InstanceFinder {
 
       return instances;
     } catch (error) {
-      console.error("Error fetching instances:", error.message);
-
-      // Fallback to hardcoded instances if API fails
-      return [
-        { url: "https://inv.nadeko.net", region: "CL", uptime: "95" },
-        { url: "https://yewtu.be", region: "DE", uptime: "90" },
-        { url: "https://invidious.nerdvpn.de", region: "UA", uptime: "90" },
-      ];
+      // Suppress network errors to prevent console spam
+      console.log("Using fallback instances due to network error");
+      return this.getFallbackInstances();
     }
+  }
+
+  getFallbackInstances() {
+    // Fallback to hardcoded instances if API fails
+    return [
+      { url: "https://inv.nadeko.net", region: "CL", uptime: "95" },
+      { url: "https://yewtu.be", region: "DE", uptime: "90" },
+      { url: "https://invidious.nerdvpn.de", region: "UA", uptime: "90" },
+    ];
   }
 
   async testInstance(instanceUrl) {
@@ -90,6 +102,16 @@ class InstanceFinder {
   }
 
   async getWorkingPipedInstances() {
+    // Skip external API calls by default to prevent DNS/timeout issues
+    // Set SKIP_EXTERNAL_APIS=0 in .env to enable dynamic instance fetching
+    const skipExternal = process.env.SKIP_EXTERNAL_APIS !== "0";
+    if (skipExternal) {
+      console.log(
+        "Skipping external Piped API calls, using fallback instances"
+      );
+      return this.getFallbackPipedInstances();
+    }
+
     // Fetch from piped instances list
     try {
       const response = await axios.get("https://piped-instances.kavin.rocks/", {
@@ -110,16 +132,20 @@ class InstanceFinder {
 
       return instances.slice(0, 8); // Top 8 instances
     } catch (error) {
-      console.error("Error fetching Piped instances:", error.message);
-
-      // Fallback list
-      return [
-        "https://pipedapi.kavin.rocks",
-        "https://pipedapi.tokhmi.xyz",
-        "https://pipedapi.moomoo.me",
-        "https://pipedapi.syncpundit.io",
-      ];
+      // Suppress network errors to prevent console spam
+      console.log("Using fallback Piped instances due to network error");
+      return this.getFallbackPipedInstances();
     }
+  }
+
+  getFallbackPipedInstances() {
+    // Fallback list
+    return [
+      "https://pipedapi.kavin.rocks",
+      "https://pipedapi.tokhmi.xyz",
+      "https://pipedapi.moomoo.me",
+      "https://pipedapi.syncpundit.io",
+    ];
   }
 }
 

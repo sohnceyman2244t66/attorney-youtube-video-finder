@@ -29,7 +29,9 @@ class PipedService {
   async getInstances() {
     const now = Date.now();
     // Only attempt dynamic discovery if explicitly enabled
-    if (process.env.PIPED_DYNAMIC === "1") {
+    // Set PIPED_DYNAMIC=1 in .env to enable dynamic instance fetching
+    const enableDynamic = process.env.PIPED_DYNAMIC === "1";
+    if (enableDynamic) {
       if (
         now - this.lastInstanceRefresh > this.instanceRefreshInterval ||
         this.workingInstances.length === 0
@@ -39,7 +41,10 @@ class PipedService {
           this.workingInstances =
             await instanceFinder.getWorkingPipedInstances();
         } catch (e) {
-          console.warn("Dynamic Piped instance fetch failed:", e.message);
+          // Suppress network errors to prevent console spam
+          console.log(
+            "Dynamic Piped instance fetch failed, using default instances"
+          );
           this.workingInstances = [];
         }
         this.lastInstanceRefresh = now;

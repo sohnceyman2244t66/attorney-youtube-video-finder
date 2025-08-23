@@ -442,6 +442,35 @@ body::before {
   padding-right: var(--spacing-2xl);
 }
 
+/* Ensure native dropdown menus are readable (fix white-on-white on some OS/browsers) */
+select.glass-input,
+.custom-select select {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.custom-select select:focus {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+}
+
+.custom-select select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Selected/highlighted option styling (support varies by browser) */
+.custom-select select option:checked {
+  background-color: rgba(71, 82, 196, 0.4);
+  color: #ffffff;
+}
+
+/* Hide the default arrow on IE */
+.custom-select select::-ms-expand {
+  display: none;
+}
+
 .select-arrow {
   position: absolute;
   right: var(--spacing-md);

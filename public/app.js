@@ -388,28 +388,30 @@ function createVideoCard(analysis, number) {
   };
 
   const getPublishDate = () => {
-    const publishDate = analysis.publishedAt || analysis.publishedText || analysis.uploadedDate;
+    const publishDate =
+      analysis.publishedAt || analysis.publishedText || analysis.uploadedDate;
     if (!publishDate) return "Unknown date";
-    
+
     // If it's already a relative time string, use it
-    if (typeof publishDate === 'string' && (
-      publishDate.includes('ago') || 
-      publishDate.includes('day') || 
-      publishDate.includes('week') || 
-      publishDate.includes('month') || 
-      publishDate.includes('year')
-    )) {
+    if (
+      typeof publishDate === "string" &&
+      (publishDate.includes("ago") ||
+        publishDate.includes("day") ||
+        publishDate.includes("week") ||
+        publishDate.includes("month") ||
+        publishDate.includes("year"))
+    ) {
       return publishDate;
     }
-    
+
     try {
       const date = new Date(publishDate);
       if (isNaN(date.getTime())) return "Unknown date";
-      
+
       const now = new Date();
       const diffTime = Math.abs(now - date);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays < 1) return "Today";
       if (diffDays === 1) return "Yesterday";
       if (diffDays < 7) return `${diffDays} days ago`;
@@ -606,7 +608,6 @@ function displayGameResults(data) {
       </div>
     `;
   } else {
-
     // Display each video
     strikableVideos.forEach((video, index) => {
       const analysis = {
@@ -622,7 +623,7 @@ function displayGameResults(data) {
         viewCount: video.viewCount || video.views,
         publishedAt: video.publishedAt || video.publishDate,
         description: video.description,
-        keyword: video.keyword
+        keyword: video.keyword,
       };
       resultsContainer.appendChild(createVideoCard(analysis, index + 1));
     });
