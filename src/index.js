@@ -455,14 +455,27 @@ app.post("/api/analyze-game", requireAuth, async (req, res) => {
     // Filter only strikable videos (high confidence infringement)
     const strikableVideos = analyses
       .filter((a) => a.isLikelyInfringing && a.confidenceScore >= 70)
-      .map((a) => ({
-        url: `https://www.youtube.com/watch?v=${a.videoId}`,
-        title: a.videoTitle,
-        channel: a.channelName,
-        confidenceScore: a.confidenceScore,
-        keyword: allVideos.find((v) => v.id === a.videoId)?.searchKeyword || "",
-        reasons: a.reasons,
-      }));
+      .map((a) => {
+        const originalVideo = allVideos.find((v) => v.id === a.videoId);
+        console.log(`Video ${a.videoId} metadata:`, {
+          viewCount: originalVideo?.viewCount,
+          lengthSeconds: originalVideo?.lengthSeconds,
+          publishedText: originalVideo?.publishedText,
+        });
+        return {
+          url: `https://www.youtube.com/watch?v=${a.videoId}`,
+          title: a.videoTitle,
+          channel: a.channelName,
+          confidenceScore: a.confidenceScore,
+          keyword: originalVideo?.searchKeyword || "",
+          reasons: a.reasons,
+          // Include original video metadata with defaults
+          description: originalVideo?.description || "",
+          viewCount: originalVideo?.viewCount || 0,
+          lengthSeconds: originalVideo?.lengthSeconds || 0,
+          publishedText: originalVideo?.publishedText || "",
+        };
+      });
 
     res.json({
       message: "Analysis complete",

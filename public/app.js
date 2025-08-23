@@ -372,16 +372,16 @@ function createVideoCard(analysis, number) {
 
   // Extract video metadata with fallbacks
   const getDuration = () => {
-    const duration = analysis.duration || analysis.lengthSeconds;
-    if (!duration || duration === 0) return "N/A";
+    const duration = analysis.duration || analysis.lengthSeconds || 0;
+    if (!duration || duration === 0) return "Duration unavailable";
     const mins = Math.floor(duration / 60);
     const secs = duration % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getViewCount = () => {
-    const views = analysis.viewCount || analysis.views;
-    if (!views || views === 0) return "N/A";
+    const views = analysis.viewCount || analysis.views || 0;
+    if (!views || views === 0) return "Views unavailable";
     if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
     if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
     return views.toString();
@@ -389,8 +389,8 @@ function createVideoCard(analysis, number) {
 
   const getPublishDate = () => {
     const publishDate =
-      analysis.publishedAt || analysis.publishedText || analysis.uploadedDate;
-    if (!publishDate) return "Unknown date";
+      analysis.publishedAt || analysis.publishedText || analysis.uploadedDate || "";
+    if (!publishDate || publishDate === "") return "Date unavailable";
 
     // If it's already a relative time string, use it
     if (
@@ -459,7 +459,7 @@ function createVideoCard(analysis, number) {
       </div>
       <div class="meta-item">
         <i class="fas fa-eye"></i>
-        ${getViewCount()} views
+        ${getViewCount()}${getViewCount().includes("unavailable") ? "" : " views"}
       </div>
       <div class="meta-item">
         <i class="fas fa-calendar"></i>
@@ -619,9 +619,9 @@ function displayGameResults(data) {
         reasons: video.reasons || ['Found with: "' + video.keyword + '"'],
         copyrightType: "game",
         analysisTimestamp: new Date().toISOString(),
-        duration: video.duration || video.lengthSeconds,
-        viewCount: video.viewCount || video.views,
-        publishedAt: video.publishedAt || video.publishDate,
+        duration: video.lengthSeconds,
+        viewCount: video.viewCount,
+        publishedAt: video.publishedText,
         description: video.description,
         keyword: video.keyword,
       };

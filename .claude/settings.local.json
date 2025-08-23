@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config:*)",
+      "Bash(git pull:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd //c:*)",
+      "Bash(npm start)",
+      "Bash(railway login:*)",
+      "Bash(railway link:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
