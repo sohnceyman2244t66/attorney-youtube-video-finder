@@ -59,6 +59,30 @@ class YtDlpService {
     });
   }
 
+  formatUploadDate(dateStr) {
+    if (!dateStr) return "";
+    // Convert YYYYMMDD to more readable format
+    if (dateStr.length === 8) {
+      const year = dateStr.substring(0, 4);
+      const month = dateStr.substring(4, 6);
+      const day = dateStr.substring(6, 8);
+      const date = new Date(`${year}-${month}-${day}`);
+      
+      // Calculate relative time
+      const now = new Date();
+      const diffMs = now - date;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return "Today";
+      if (diffDays === 1) return "1 day ago";
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+      return `${Math.floor(diffDays / 365)} years ago`;
+    }
+    return dateStr;
+  }
+
   mapEntriesToVideos(entries) {
     return (entries || []).map((e) => ({
       id: e.id || e.video_id || "",
@@ -68,7 +92,7 @@ class YtDlpService {
       description: e.description || "",
       viewCount: e.view_count || 0,
       lengthSeconds: e.duration || 0,
-      publishedText: e.upload_date || "",
+      publishedText: this.formatUploadDate(e.upload_date) || e.upload_date || "",
       thumbnail: e.thumbnail || (e.thumbnails && e.thumbnails[0]?.url) || "",
     }));
   }

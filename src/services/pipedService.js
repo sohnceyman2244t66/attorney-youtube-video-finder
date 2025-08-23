@@ -84,6 +84,11 @@ class PipedService {
         ? response.data
         : response.data?.items || [];
 
+      // Log the first video to see what fields are available
+      if (data.length > 0) {
+        console.log("Sample Piped video data:", JSON.stringify(data[0], null, 2));
+      }
+      
       const videos = data
         .filter((it) => (it.type || "video").toLowerCase() === "video")
         .slice(0, maxResults)
@@ -95,7 +100,7 @@ class PipedService {
           description: v.description || "",
           viewCount: v.views || v.viewCount || 0,
           lengthSeconds: v.duration || v.lengthSeconds || 0,
-          publishedText: v.uploadedDate || v.publishedText || "",
+          publishedText: v.uploadedDate || v.publishedText || v.uploaded || v.uploadDate || v.published || "",
           thumbnail:
             v.thumbnail || v.thumbnailUrl || v.thumbnails?.[0]?.url || "",
         }));
